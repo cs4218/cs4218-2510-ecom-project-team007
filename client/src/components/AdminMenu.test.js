@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import AdminMenu from "./AdminMenu";
+import AdminMenu from './AdminMenu';
 
 describe('AdminMenu Component', () => {
   const links = [
@@ -18,10 +18,8 @@ describe('AdminMenu Component', () => {
 
   it('should render the admin menu correctly', () => {
     render(
-      <MemoryRouter initialEntries={['/dashboard/admin']}>
-        <Routes>
-          <Route path="/dashboard/admin" element={<AdminMenu />} />
-        </Routes>
+      <MemoryRouter>
+        <AdminMenu />
       </MemoryRouter>
     );
 
@@ -34,10 +32,8 @@ describe('AdminMenu Component', () => {
 
   it('should render all navigation links correctly', () => {
     render(
-      <MemoryRouter initialEntries={['/dashboard/admin']}>
-        <Routes>
-          <Route path="/dashboard/admin" element={<AdminMenu />} />
-        </Routes>
+      <MemoryRouter>
+        <AdminMenu />
       </MemoryRouter>
     );
 
