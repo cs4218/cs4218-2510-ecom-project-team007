@@ -39,18 +39,11 @@ describe('AdminDashboard Component', () => {
     expect(screen.getByRole('heading', { name: 'Admin Contact: 81234567' })).toBeInTheDocument();
   });
 
-  it('should render the admin dashboard when user is null', () => {
-    useAuth.mockReturnValue([{ user: null }, jest.fn()]);
-
-    render(<AdminDashboard />);
-
-    expect(screen.getByRole('heading', { name: 'Admin Name:' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Admin Email:' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Admin Contact:' })).toBeInTheDocument();
-  });
-
-  it('should render the admin dashboard when auth is null', () => {
-    useAuth.mockReturnValue([null, jest.fn()]);
+  it.each([
+    ['user is null', [{ user: null }, jest.fn()]],
+    ['auth is null', [null, jest.fn()]],
+  ])('should render the admin dashboard when %s', (description, mockAuth) => {
+    useAuth.mockReturnValue(mockAuth);
 
     render(<AdminDashboard />);
 
