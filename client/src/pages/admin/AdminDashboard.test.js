@@ -22,26 +22,24 @@ describe('AdminDashboard Component', () => {
 
   it('should render AdminMenu inside AdminDashboard', () => {
     render(<AdminDashboard />);
+
     expect(screen.getByText('Admin Menu')).toBeInTheDocument();
   });
 
   it('should render AdminDashboard when all user data is present', () => {
-    useAuth.mockReturnValue([
-      {
-        user: {
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          phone: '81234567',
-        },
-      },
-      jest.fn(),
-    ]);
+    const mockUser = {
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      phone: '81234567',
+    };
+
+    useAuth.mockReturnValue([{ user: mockUser }, jest.fn()]);
 
     render(<AdminDashboard />);
 
-    expect(screen.getByRole('heading', { name: 'Admin Name: John Doe' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Admin Email: john.doe@example.com' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Admin Contact: 81234567' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: `Admin Name: ${mockUser.name}` })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: `Admin Email: ${mockUser.email}` })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: `Admin Contact: ${mockUser.phone}` })).toBeInTheDocument();
   });
 
   it.each([
