@@ -16,7 +16,7 @@ describe('AdminMenu Component', () => {
     jest.clearAllMocks();
   })
 
-  it('should render the admin menu correctly', () => {
+  it('should render AdminMenu correctly', () => {
     render(
       <MemoryRouter>
         <AdminMenu />
