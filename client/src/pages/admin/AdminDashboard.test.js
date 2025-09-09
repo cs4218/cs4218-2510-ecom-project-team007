@@ -20,6 +20,11 @@ describe('AdminDashboard Component', () => {
     jest.clearAllMocks();
   });
 
+  it('should render the admin menu inside the admin dashboard', () => {
+    render(<AdminDashboard />);
+    expect(screen.getByText('Admin Menu')).toBeInTheDocument();
+  });
+
   it('should render the admin dashboard when all user data is present', () => {
     useAuth.mockReturnValue([
       {
