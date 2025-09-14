@@ -16,7 +16,7 @@ describe('AdminMenu Component', () => {
     jest.clearAllMocks();
   })
 
-  it('should render AdminMenu correctly', () => {
+  it('renders admin menu with heading and links', () => {
     render(
       <MemoryRouter>
         <AdminMenu />
@@ -26,11 +26,11 @@ describe('AdminMenu Component', () => {
     expect(screen.getByRole('heading', { name: 'Admin Panel' })).toBeInTheDocument();
 
     links.forEach(({ name }) => {
-      expect(screen.getByText(name)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name })).toBeInTheDocument();
     });
   });
 
-  it('should render all navigation links correctly', () => {
+  it('renders navigation links with correct hrefs', () => {
     render(
       <MemoryRouter>
         <AdminMenu />
@@ -43,7 +43,7 @@ describe('AdminMenu Component', () => {
   });
 
   it.each(links.map(link => [link.name, link.path, link.page]))(
-    'should navigate to the %s page when clicked',
+    'navigates to the %s page when clicked',
     (name, path, page) => {
       render(
         <MemoryRouter initialEntries={['/dashboard/admin']}>

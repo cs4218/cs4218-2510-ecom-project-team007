@@ -20,13 +20,13 @@ describe('AdminDashboard Component', () => {
     jest.clearAllMocks();
   });
 
-  it('should render AdminMenu inside AdminDashboard', () => {
+  it('renders admin menu inside admin dashboard', () => {
     render(<AdminDashboard />);
 
     expect(screen.getByText('Admin Menu')).toBeInTheDocument();
   });
 
-  it('should render AdminDashboard when all user data is present', () => {
+  it('displays admin details when user exists', () => {
     const mockUser = {
       name: 'John Doe',
       email: 'john.doe@example.com',
@@ -45,7 +45,7 @@ describe('AdminDashboard Component', () => {
   it.each([
     ['user is null', [{ user: null }, jest.fn()]],
     ['auth is null', [null, jest.fn()]],
-  ])('should render AdminDashboard when %s', (description, mockAuth) => {
+  ])('displays empty admin fields when %s', (description, mockAuth) => {
     useAuth.mockReturnValue(mockAuth);
 
     render(<AdminDashboard />);
