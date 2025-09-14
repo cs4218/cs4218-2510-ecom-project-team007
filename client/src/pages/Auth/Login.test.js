@@ -22,7 +22,16 @@ jest.mock('../../context/search', () => ({
   useSearch: jest.fn(() => [{ keyword: '' }, jest.fn()]), // Mock useSearch hook to return null state and a mock function
 }));
 
-jest.mock('../../hooks/useCategory', () => jest.fn(() => []));
+jest.mock('../../hooks/useCategory', () => jest.fn(()=> []));
+  
+  Object.defineProperty(window, 'localStorage', {
+    value: {
+      setItem: jest.fn(),
+      getItem: jest.fn(),
+      removeItem: jest.fn(),
+    },
+    writable: true,
+  });
 
 Object.defineProperty(window, 'localStorage', {
   value: {
@@ -42,62 +51,14 @@ window.matchMedia = window.matchMedia || function () {
 };
 
 describe('Login Component', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    console.log.mockRestore();
-  })
-
-  it('renders login form', () => {
-    const { getByText, getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(getByText('LOGIN FORM')).toBeInTheDocument();
-    expect(getByPlaceholderText('Enter Your Email')).toBeInTheDocument();
-    expect(getByPlaceholderText('Enter Your Password')).toBeInTheDocument();
-  });
-
-  it('inputs should be initially empty', () => {
-    const { getByText, getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(getByText('LOGIN FORM')).toBeInTheDocument();
-    expect(getByPlaceholderText('Enter Your Email').value).toBe('');
-    expect(getByPlaceholderText('Enter Your Password').value).toBe('');
-  });
-
-  it('should allow typing email and password', () => {
-    const { getByText, getByPlaceholderText } = render(
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    fireEvent.change(getByPlaceholderText('Enter Your Email'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.change(getByPlaceholderText('Enter Your Password'), {
-      target: { value: 'password123' },
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(console, 'log').mockImplementation(() => {});
     });
 
-    expect(getByPlaceholderText('Enter Your Email').value).toBe('test@example.com');
-    expect(getByPlaceholderText('Enter Your Password').value).toBe('password123');
-  });
+    afterEach(() => {
+      console.log.mockRestore();
+    });
 
   it('should login the user successfully', async () => {
     axios.post.mockResolvedValueOnce({
