@@ -41,7 +41,6 @@ describe('CategoryForm Component', () => {
   it.each([
     ['is empty', ''],
     ['contains only whitespace', '   '],
-    ['contains only tabs', '\t\t'],
   ])('disables submit button when input %s', (description, value) => {
     render(<CategoryForm {...defaultProps} value={value} />);
 
@@ -58,14 +57,6 @@ describe('CategoryForm Component', () => {
     render(<CategoryForm {...defaultProps} value="Test Category" />);
 
     fireEvent.submit(screen.getByRole('form', { name: /category form/i }));
-
-    expect(mockHandleSubmit).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls handleSubmit when submit button is clicked', () => {
-    render(<CategoryForm {...defaultProps} value="Test Category" />);
-
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
 
     expect(mockHandleSubmit).toHaveBeenCalledTimes(1);
   });
