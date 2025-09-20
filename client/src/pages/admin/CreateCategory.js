@@ -1,53 +1,53 @@
-import React, { useEffect, useState } from "react";
-import Layout from "./../../components/Layout";
-import AdminMenu from "./../../components/AdminMenu";
-import toast from "react-hot-toast";
-import axios from "axios";
-import CategoryForm from "../../components/Form/CategoryForm";
-import { Modal } from "antd";
+import React, { useState, useEffect } from 'react';
+import { Modal } from 'antd';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import Layout from './../../components/Layout';
+import AdminMenu from './../../components/AdminMenu';
+import CategoryForm from '../../components/Form/CategoryForm';
+
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
-  const [name, setName] = useState("");
-  const [visible, setVisible] = useState(false);
+  const [name, setName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [updatedName, setUpdatedName] = useState("");
-  //handle Form
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const { data } = await axios.post("/api/v1/category/create-category", {
-        name,
-      });
-      if (data?.success) {
-        toast.success(`${name} is created`);
-        getAllCategory();
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("somthing went wrong in input form");
-    }
-  };
-
-  //get all cat
-  const getAllCategory = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/category/get-category");
-      if (data.success) {
-        setCategories(data.category);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
-    }
-  };
+  const [updatedName, setUpdatedName] = useState('');
 
   useEffect(() => {
-    getAllCategory();
+    void getAllCategories();
   }, []);
 
-  //update category
+  const getAllCategories = async () => {
+    try {
+      const { data } = await axios.get('/api/v1/category/get-category');
+      setCategories(data.category);
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+      toast.error('Failed to load categories');
+    }
+  };
+
+  // Create new category
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post('/api/v1/category/create-category', { name });
+      toast.success(`${name} created successfully`);
+      setName('');
+      await getAllCategories();
+    } catch (error) {
+      console.error('Error creating category:', error.message);
+
+      if (error.response?.status === 409) {
+        toast.error('Category already exists');
+      } else {
+        toast.error('Failed to create category');
+      }
+    }
+  };
+
+  // Update category
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -58,17 +58,18 @@ const CreateCategory = () => {
       if (data.success) {
         toast.success(`${updatedName} is updated`);
         setSelected(null);
-        setUpdatedName("");
-        setVisible(false);
-        getAllCategory();
+        setUpdatedName('');
+        setIsModalOpen(false);
+        getAllCategories();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+      toast.error('Somtihing went wrong');
     }
   };
-  //delete category
+
+  // Delete category
   const handleDelete = async (pId) => {
     try {
       const { data } = await axios.delete(
@@ -77,23 +78,27 @@ const CreateCategory = () => {
       if (data.success) {
         toast.success(`category is deleted`);
 
-        getAllCategory();
+        getAllCategories();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+      toast.error('Somtihing went wrong');
     }
   };
+
   return (
-    <Layout title={"Dashboard - Create Category"}>
+    <Layout title={'Dashboard - Create Category'}>
       <div className="container-fluid m-3 p-3">
         <div className="row">
           <div className="col-md-3">
             <AdminMenu />
           </div>
+
           <div className="col-md-9">
             <h1>Manage Category</h1>
+
+            {/* Category Form */}
             <div className="p-3 w-50">
               <CategoryForm
                 handleSubmit={handleSubmit}
@@ -101,6 +106,8 @@ const CreateCategory = () => {
                 setValue={setName}
               />
             </div>
+
+            {/* Categories Table */}
             <div className="w-75">
               <table className="table">
                 <thead>
@@ -110,40 +117,38 @@ const CreateCategory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories?.map((c) => (
-                    <>
-                      <tr>
-                        <td key={c._id}>{c.name}</td>
-                        <td>
-                          <button
-                            className="btn btn-primary ms-2"
-                            onClick={() => {
-                              setVisible(true);
-                              setUpdatedName(c.name);
-                              setSelected(c);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-danger ms-2"
-                            onClick={() => {
-                              handleDelete(c._id);
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    </>
+                  {categories?.map(category => (
+                    <tr key={category._id}>
+                      <td>{category.name}</td>
+                      <td>
+                        <button
+                          className="btn btn-primary ms-2"
+                          onClick={() => {
+                            setIsModalOpen(true);
+                            setUpdatedName(category.name);
+                            setSelected(category);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-danger ms-2"
+                          onClick={() => handleDelete(category._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+
+            {/* Edit Modal */}
             <Modal
-              onCancel={() => setVisible(false)}
+              onCancel={() => setIsModalOpen(false)}
               footer={null}
-              visible={visible}
+              open={isModalOpen}
             >
               <CategoryForm
                 value={updatedName}
