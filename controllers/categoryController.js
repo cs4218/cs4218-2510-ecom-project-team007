@@ -1,9 +1,10 @@
 import slugify from 'slugify';
 import categoryModel from '../models/categoryModel.js';
+import { normalizeText } from '../client/src/utils/textUtils.js';
 
 export const createCategoryController = async (req, res) => {
   try {
-    const name = req.body.name?.trim();
+    const name = normalizeText(req.body.name);
     if (!name) {
       return res.status(400).send({
         success: false,
@@ -11,8 +12,12 @@ export const createCategoryController = async (req, res) => {
       });
     }
 
-    const categoryExists = await categoryModel.exists({ name });
-    if (categoryExists) {
+    // Check for duplicate name
+    const duplicateExists = await categoryModel.exists({
+      name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive
+    });
+
+    if (duplicateExists) {
       return res.status(409).send({
         success: false,
         message: 'Category already exists',
@@ -40,24 +45,54 @@ export const createCategoryController = async (req, res) => {
 
 export const updateCategoryController = async (req, res) => {
   try {
-    const { name } = req.body;
     const { id } = req.params;
+    const name = normalizeText(req.body.name);
+
+    if (!name) {
+      return res.status(400).send({
+        success: false,
+        message: 'Name is required',
+      });
+    }
+
+    // Check if category to update exists
+    const categoryExists = await categoryModel.exists({ _id: id });
+    if (!categoryExists) {
+      return res.status(404).send({
+        success: false,
+        message: 'Category not found',
+      });
+    }
+
+    // Check for duplicate name
+    const duplicateExists = await categoryModel.exists({
+      name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive
+      _id: { $ne: id }, // Excludes current category
+    });
+
+    if (duplicateExists) {
+      return res.status(409).send({
+        success: false,
+        message: 'Category already exists',
+      });
+    }
+
     const category = await categoryModel.findByIdAndUpdate(
       id,
       { name, slug: slugify(name) },
-      { new: true }
+      { new: true },
     );
+
     res.status(200).send({
       success: true,
-      messsage: 'Category Updated Successfully',
+      message: 'Category updated successfully',
       category,
     });
   } catch (error) {
-    console.log(error);
+    console.error('Error updating category:', error.message);
     res.status(500).send({
       success: false,
-      error,
-      message: 'Error while updating category',
+      message: 'Failed to update category',
     });
   }
 };

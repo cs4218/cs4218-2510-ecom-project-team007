@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import Layout from './../../components/Layout';
 import AdminMenu from './../../components/AdminMenu';
 import CategoryForm from '../../components/Form/CategoryForm';
+import { normalizeText } from '../../utils/textUtils';
 
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -31,9 +32,11 @@ const CreateCategory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const normalizedName = normalizeText(name);
+
     try {
-      await axios.post('/api/v1/category/create-category', { name });
-      toast.success(`${name} created successfully`);
+      await axios.post('/api/v1/category/create-category', { name: normalizedName });
+      toast.success(`${normalizedName} created successfully`);
       setName('');
       await getAllCategories();
     } catch (error) {
@@ -50,22 +53,35 @@ const CreateCategory = () => {
   // Update category
   const handleUpdate = async (e) => {
     e.preventDefault();
+
+    const normalizedUpdatedName = normalizeText(updatedName);
+
+    if (normalizedUpdatedName.toLowerCase() === selected.name.toLowerCase()) {
+      toast.error('Please enter a new name');
+      return;
+    }
+
     try {
-      const { data } = await axios.put(
+      await axios.put(
         `/api/v1/category/update-category/${selected._id}`,
-        { name: updatedName }
+        { name: normalizedUpdatedName },
       );
-      if (data.success) {
-        toast.success(`${updatedName} is updated`);
-        setSelected(null);
-        setUpdatedName('');
-        setIsModalOpen(false);
-        getAllCategories();
-      } else {
-        toast.error(data.message);
-      }
+
+      toast.success(`${normalizedUpdatedName} updated successfully`);
+
+      setSelected(null);
+      setUpdatedName('');
+      setIsModalOpen(false);
+
+      await getAllCategories();
     } catch (error) {
-      toast.error('Somtihing went wrong');
+      console.error('Error updating category:', error.message);
+
+      if (error.response?.status === 409) {
+        toast.error('Category already exists');
+      } else {
+        toast.error('Failed to update category');
+      }
     }
   };
 
