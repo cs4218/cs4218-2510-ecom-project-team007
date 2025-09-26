@@ -85,21 +85,31 @@ const CreateCategory = () => {
     }
   };
 
-  // Delete category
-  const handleDelete = async (pId) => {
-    try {
-      const { data } = await axios.delete(
-        `/api/v1/category/delete-category/${pId}`
-      );
-      if (data.success) {
-        toast.success(`category is deleted`);
+  const showDeleteConfirmation = (category) => {
+    Modal.confirm({
+      title: 'Delete category?',
+      content: `${category.name} will be permanently deleted. This action cannot be undone.`,
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: () => handleDelete(category),
+    });
+  };
 
-        getAllCategories();
-      } else {
-        toast.error(data.message);
-      }
+  // Delete category
+  const handleDelete = async (category) => {
+    try {
+      await axios.delete(`/api/v1/category/delete-category/${category._id}`);
+      toast.success(`${category.name} deleted successfully`);
+      await getAllCategories();
     } catch (error) {
-      toast.error('Somtihing went wrong');
+      console.error('Error deleting category:', error.message);
+
+      if (error.response?.status === 409) {
+        toast.error('Category still has products');
+      } else {
+        toast.error('Failed to delete category');
+      }
     }
   };
 
@@ -149,7 +159,7 @@ const CreateCategory = () => {
                         </button>
                         <button
                           className="btn btn-danger ms-2"
-                          onClick={() => handleDelete(category._id)}
+                          onClick={() => showDeleteConfirmation(category)}
                         >
                           Delete
                         </button>
