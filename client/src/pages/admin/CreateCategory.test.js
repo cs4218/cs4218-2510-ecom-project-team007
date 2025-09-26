@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
+import { Modal } from 'antd';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import CreateCategory from './CreateCategory';
@@ -37,7 +38,11 @@ jest.mock('../../utils/textUtils', () => ({
 }));
 
 describe('CreateCategory Component', () => {
-  const mockCategories = [
+  const id = '1';
+  const name = 'Electronics';
+  const category = { _id: id, name };
+
+  const categories = [
     { _id: '1', name: 'Electronics' },
     { _id: '2', name: 'Books' },
     { _id: '3', name: 'Clothing' },
@@ -45,6 +50,10 @@ describe('CreateCategory Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the component with category form and table', async () => {
@@ -64,19 +73,19 @@ describe('CreateCategory Component', () => {
   });
 
   it('displays existing categories in the table', async () => {
-    axios.get.mockResolvedValue({ data: { category: mockCategories } });
+    axios.get.mockResolvedValue({ data: { category: categories } });
 
     render(<CreateCategory />);
 
     await waitFor(() => {
-      mockCategories.forEach(({ name }) => {
+      categories.forEach(({ name }) => {
         expect(screen.getByRole('cell', { name })).toBeInTheDocument();
       });
     });
   });
 
   it('renders edit and delete buttons for each category', async () => {
-    axios.get.mockResolvedValue({ data: { category: mockCategories } });
+    axios.get.mockResolvedValue({ data: { category: categories } });
 
     render(<CreateCategory />);
 
@@ -84,13 +93,13 @@ describe('CreateCategory Component', () => {
       const editButtons = screen.getAllByRole('button', { name: /edit/i });
       const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
 
-      expect(editButtons).toHaveLength(mockCategories.length);
-      expect(deleteButtons).toHaveLength(mockCategories.length);
+      expect(editButtons).toHaveLength(categories.length);
+      expect(deleteButtons).toHaveLength(categories.length);
     });
   });
 
   it('shows an error message when fetching categories fails', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
 
     axios.get.mockRejectedValue(new Error('Request failed'));
 
@@ -99,8 +108,6 @@ describe('CreateCategory Component', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to load categories');
     });
-
-    spy.mockRestore();
   });
 
   describe('Create Category', () => {
@@ -115,12 +122,12 @@ describe('CreateCategory Component', () => {
       });
     };
 
-    it('creates a new category successfully', async () => {
-      const name = 'Electronics';
-
+    beforeEach(() => {
       axios.get.mockResolvedValue({ data: { category: [] } });
       axios.post.mockResolvedValue();
+    });
 
+    it('creates a new category successfully', async () => {
       render(<CreateCategory />);
 
       await createCategory(name);
@@ -130,9 +137,6 @@ describe('CreateCategory Component', () => {
     });
 
     it('clears the input field after successfully creating a new category', async () => {
-      axios.get.mockResolvedValue({ data: { category: [] } });
-      axios.post.mockResolvedValue();
-
       render(<CreateCategory />);
 
       const input = screen.getByPlaceholderText('Enter new category');
@@ -147,13 +151,9 @@ describe('CreateCategory Component', () => {
     });
 
     it('displays the new category in the table after it is created', async () => {
-      const name = 'Electronics';
-
       axios.get
         .mockResolvedValueOnce({ data: { category: [] } })
-        .mockResolvedValueOnce({ data: { category: [{ _id: '1', name }] } });
-
-      axios.post.mockResolvedValue();
+        .mockResolvedValueOnce({ data: { category: [category] } });
 
       render(<CreateCategory />);
 
@@ -163,10 +163,9 @@ describe('CreateCategory Component', () => {
     });
 
     it('shows an error message when creating a duplicate category', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      const name = 'Electronics';
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
+      axios.get.mockResolvedValue({ data: { category: [category] } });
       axios.post.mockRejectedValue({
         response: { status: 409 },
         message: 'Category already exists',
@@ -180,14 +179,11 @@ describe('CreateCategory Component', () => {
       await createCategory(name);
 
       expect(toast.error).toHaveBeenCalledWith('Category already exists');
-
-      spy.mockRestore();
     });
 
     it('shows an error message when creating a new category fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      axios.get.mockResolvedValue({ data: { category: [] } });
       axios.post.mockRejectedValue({
         response: { status: 500 },
         message: 'Internal server error',
@@ -195,15 +191,15 @@ describe('CreateCategory Component', () => {
 
       render(<CreateCategory />);
 
-      await createCategory('Electronics');
+      await createCategory(name);
 
       expect(toast.error).toHaveBeenCalledWith('Failed to create category');
-
-      spy.mockRestore();
     });
   });
 
   describe('Update Category', () => {
+    const updatedName = 'Electronics & Gadgets';
+
     const openEditModal = async (name) => {
       const cell = await screen.findByRole('cell', { name });
       const row = cell.closest('tr');
@@ -224,11 +220,12 @@ describe('CreateCategory Component', () => {
       });
     };
 
-    it('opens the modal when clicking the edit button', async () => {
-      const name = 'Electronics';
+    beforeEach(() => {
+      axios.get.mockResolvedValue({ data: { category: [category] } });
+      axios.put.mockResolvedValue();
+    });
 
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
-
+    it('opens the edit modal when clicking the edit button', async () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
@@ -237,10 +234,6 @@ describe('CreateCategory Component', () => {
     });
 
     it('displays the selected category name in the edit form', async () => {
-      const name = 'Electronics';
-
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
-
       render(<CreateCategory />);
 
       await openEditModal(name);
@@ -251,32 +244,35 @@ describe('CreateCategory Component', () => {
       expect(input).toHaveValue(name);
     });
 
+    it('closes the edit modal when clicking the close button', async () => {
+      render(<CreateCategory />);
+
+      await openEditModal(name);
+
+      const modal = await screen.findByRole('dialog');
+      const closeButton = within(modal).getByRole('button', { name: /close/i });
+
+      fireEvent.click(closeButton);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
     it('updates a category successfully', async () => {
-      const name = 'Electronics';
-      const updatedName = 'Electronics & Gadgets';
-
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
-      axios.put.mockResolvedValue();
-
       render(<CreateCategory />);
 
       await openEditModal(name);
       await updateCategory(updatedName);
 
       expect(axios.put).toHaveBeenCalledWith(
-        '/api/v1/category/update-category/1',
+        `/api/v1/category/update-category/${id}`,
         { name: updatedName },
       );
       expect(toast.success).toHaveBeenCalledWith(`${updatedName} updated successfully`);
     });
 
-    it('closes the modal after successfully updating a category', async () => {
-      const name = 'Electronics';
-      const updatedName = 'Electronics & Gadgets';
-
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
-      axios.put.mockResolvedValue();
-
+    it('closes the edit modal after successfully updating a category', async () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
@@ -288,14 +284,11 @@ describe('CreateCategory Component', () => {
     });
 
     it('displays the updated category in the table after it is edited', async () => {
-      const name = 'Electronics';
-      const updatedName = 'Electronics & Gadgets';
+      const updatedCategory = { _id: '1', name: updatedName };
 
       axios.get
-        .mockResolvedValueOnce({ data: { category: [{ _id: '1', name }] } })
-        .mockResolvedValueOnce({ data: { category: [{ _id: '1', name: updatedName }] } });
-
-      axios.put.mockResolvedValue();
+        .mockResolvedValueOnce({ data: { category: [category] } })
+        .mockResolvedValueOnce({ data: { category: [updatedCategory] } });
 
       render(<CreateCategory />);
 
@@ -305,11 +298,7 @@ describe('CreateCategory Component', () => {
       expect(await screen.findByRole('cell', { name: updatedName })).toBeInTheDocument();
     });
 
-    it('shows an error message when updating to the same name', async () => {
-      const name = 'Electronics';
-
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
-
+    it('shows an error message when the updated name is unchanged', async () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
@@ -318,20 +307,13 @@ describe('CreateCategory Component', () => {
       expect(toast.error).toHaveBeenCalledWith('Please enter a new name');
     });
 
-    it('shows an error message when updating to an existing name', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      const name = 'Electronics';
-      const updatedName = 'Books';
+    it('shows an error message when the updated name already exists', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      axios.get.mockResolvedValue({
-        data: {
-          category: [
-            { _id: '1', name },
-            { _id: '2', name: updatedName },
-          ],
-        },
-      });
+      const conflictingName = 'Books';
+      const conflictingCategory = { _id: '2', name: conflictingName };
 
+      axios.get.mockResolvedValue({ data: { category: [category, conflictingCategory] } });
       axios.put.mockRejectedValue({
         response: { status: 409 },
         message: 'Category already exists',
@@ -340,19 +322,14 @@ describe('CreateCategory Component', () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
-      await updateCategory(updatedName);
+      await updateCategory(conflictingName);
 
       expect(toast.error).toHaveBeenCalledWith('Category already exists');
-
-      spy.mockRestore();
     });
 
     it('shows an error message when updating a category fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      const name = 'Electronics';
-      const updatedName = 'Electronics & Gadgets';
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      axios.get.mockResolvedValue({ data: { category: [{ _id: '1', name }] } });
       axios.put.mockRejectedValue({
         response: { status: 500 },
         message: 'Internal server error',
@@ -364,8 +341,100 @@ describe('CreateCategory Component', () => {
       await updateCategory(updatedName);
 
       expect(toast.error).toHaveBeenCalledWith('Failed to update category');
+    });
+  });
 
-      spy.mockRestore();
+  describe('Delete Category', () => {
+    const clickDeleteButton = async (name) => {
+      const cell = await screen.findByRole('cell', { name });
+      const row = cell.closest('tr');
+      const deleteButton = within(row).getByRole('button', { name: /delete/i });
+
+      fireEvent.click(deleteButton);
+    };
+
+    beforeEach(() => {
+      axios.get.mockResolvedValue({ data: { category: [category] } });
+      axios.delete.mockResolvedValue();
+    });
+
+    it('calls Modal.confirm when clicking the delete button', async () => {
+      const spy = jest.spyOn(Modal, 'confirm').mockImplementation(() => {});
+
+      render(<CreateCategory />);
+
+      await clickDeleteButton(name);
+
+      expect(spy).toHaveBeenCalledWith({
+        title: 'Delete category?',
+        content: `${name} will be permanently deleted. This action cannot be undone.`,
+        okText: 'Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: expect.any(Function),
+      });
+    });
+
+    it('deletes a category successfully after confirmation', async () => {
+      jest.spyOn(Modal, 'confirm').mockImplementation(({ onOk }) => onOk());
+
+      render(<CreateCategory />);
+
+      await clickDeleteButton(name);
+
+      await waitFor(() => {
+        expect(axios.delete).toHaveBeenCalledWith(`/api/v1/category/delete-category/${id}`);
+      });
+
+      expect(toast.success).toHaveBeenCalledWith(`${name} deleted successfully`);
+    });
+
+    it('removes the category from the table after it is deleted', async () => {
+      jest.spyOn(Modal, 'confirm').mockImplementation(({ onOk }) => onOk());
+
+      axios.get
+        .mockResolvedValueOnce({ data: { category: [category] } })
+        .mockResolvedValueOnce({ data: { category: [] } });
+
+      render(<CreateCategory />);
+
+      await clickDeleteButton(name);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('cell', { name })).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows an error message when deleting a category with products', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(Modal, 'confirm').mockImplementation(({ onOk }) => onOk());
+
+      axios.delete.mockRejectedValue({
+        response: { status: 409 },
+        message: 'Category still has products',
+      });
+
+      render(<CreateCategory />);
+
+      await clickDeleteButton(name);
+
+      expect(toast.error).toHaveBeenCalledWith('Category still has products');
+    });
+
+    it('shows an error message when deleting a category fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      jest.spyOn(Modal, 'confirm').mockImplementation(({ onOk }) => onOk());
+
+      axios.delete.mockRejectedValue({
+        response: { status: 500 },
+        message: 'Internal server error',
+      });
+
+      render(<CreateCategory />);
+
+      await clickDeleteButton(name);
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to delete category');
     });
   });
 });
