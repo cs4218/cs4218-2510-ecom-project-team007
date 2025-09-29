@@ -100,6 +100,13 @@ export const getSingleProductController = async (req, res) => {
       .select("-photo")
       .populate("category");
 
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "No matching product found"
+      });
+    }
+
     res.status(200).send({
       success: true,
       message: "Single product fetched",

@@ -77,7 +77,7 @@ describe("Test getSingleProductController", () => {
     }
   });
 
-  it("Should return test product successfully", async () => {
+  it("Should return test product successfully (200)", async () => {
     const testProduct = { name: "Test Product", slug: "test-product", category: { name: "Category2" } };
 
     const query = {
@@ -97,7 +97,24 @@ describe("Test getSingleProductController", () => {
     });
   });
 
-  it("Should handle errors", async () => {
+  it("Should handle no product found (404)", async () => {
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      populate: jest.fn().mockResolvedValue(null),
+    };
+    productModel.findOne.mockReturnValue(query);
+
+    await getSingleProductController(req, res);
+    
+    expect(productModel.findOne).toHaveBeenCalledWith({ slug: "test-product" });
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "No matching product found"
+    });
+  });
+
+  it("Should handle errors (500)", async () => {
     const errorMessage = "DB query error";
     productModel.findOne.mockImplementation(() => { throw new Error(errorMessage); });
 
