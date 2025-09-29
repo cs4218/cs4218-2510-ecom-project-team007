@@ -219,9 +219,16 @@ export const updateProductController = async (req, res) => {
 export const productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
+
+    if (radio !== undefined && (!Array.isArray(radio) || ![0,2].includes(radio.length)))
+      return res.status(400).send({
+        success: false,
+        message: "Invalid radio field"
+      }); 
+
     let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
+    if (checked && checked.length > 0) args.category = checked;
+    if (radio && radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
 
     const products = await productModel.find(args);
     res.status(200).send({

@@ -218,7 +218,7 @@ describe("Test productFiltersController", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    req = { body: { checked: [], radio: [] } };
+    req = { body: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn()
@@ -292,19 +292,29 @@ describe("Test productFiltersController", () => {
     });
   });
 
-  it("Should not filter by price if radio length is not 2 (200)", async () => {
+  it("Should not filter by price if radio length is not 2 (400)", async () => {
     const testradio = [0, 20, 10];
     req.body.radio = testradio;
-    const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockResolvedValue(testProducts);
 
     await productFiltersController(req, res);
 
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith({
-      success: true,
-      products: testProducts,
+      success: false,
+      message: "Invalid radio field"
+    });
+  });
+
+  it("Should not filter by price if radio is not an array (400)", async () => {
+    const testradio = 123;
+    req.body.radio = testradio;
+
+    await productFiltersController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Invalid radio field"
     });
   });
 
