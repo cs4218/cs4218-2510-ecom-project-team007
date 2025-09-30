@@ -377,10 +377,20 @@ export const braintreeTokenController = async (req, res) => {
 export const brainTreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
+
+    if (!cart || !Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).send('Cart is required');
+    }
     let total = 0;
-    cart.map((i) => {
-      total += i.price;
-    });
+    for (const item of cart) {
+      if (typeof item.price !== 'number' || isNaN(item.price)) {
+        return res.status(400).send('Invalid price');
+      }
+      total += item.price;
+    }
+    if (!req.user || !req.user._id) {
+      return res.status(500).send('User not logged in');
+    }
     let newTransaction = gateway.transaction.sale(
       {
         amount: total,
