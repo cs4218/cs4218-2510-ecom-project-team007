@@ -1,7 +1,6 @@
 import React from "react";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor } from "react";
 import axios from "axios";
-import "@testing-library/jest-dom/extend-expect";
 import { AuthProvider, useAuth } from "./auth";
 
 // Fake consumer to check AuthContext state
@@ -61,7 +60,6 @@ describe("AuthProvider", () => {
 
   it("falls back to default state when JSON is malformed", () => {
     const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-    // Instead of mocking JSON.parse, provide invalid JSON in localStorage
     window.localStorage.getItem.mockReturnValueOnce("{bad-json}");
 
     const { getByTestId } = render(
