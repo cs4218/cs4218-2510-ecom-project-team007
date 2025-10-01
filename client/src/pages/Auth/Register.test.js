@@ -24,15 +24,6 @@ jest.mock('../../context/search', () => ({
 
 jest.mock('../../hooks/useCategory', () => jest.fn(()=> []));
 
-  Object.defineProperty(window, 'localStorage', {
-    value: {
-      setItem: jest.fn(),
-      getItem: jest.fn(),
-      removeItem: jest.fn(),
-    },
-    writable: true,
-  });
-
 Object.defineProperty(window, 'localStorage', {
   value: {
     setItem: jest.fn(),
