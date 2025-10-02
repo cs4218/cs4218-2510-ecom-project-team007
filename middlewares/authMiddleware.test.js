@@ -9,15 +9,20 @@ describe("Auth Middleware BVA Tests", () => {
   let req, res, next;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     req = { headers: {} };
     res = {
       status: jest.fn(() => res),
       send: jest.fn(),
     };
     next = jest.fn();
-    jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    console.log.mockRestore()
+  });
+  
   it("should call next() with valid token", async () => {
     const fakePayload = { _id: "user1", role: 0 };
     req.headers.authorization = "validtoken";
