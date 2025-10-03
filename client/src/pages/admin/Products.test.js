@@ -77,34 +77,18 @@ describe('Products Component', () => {
     const laptopImage = await screen.findByAltText(mockLaptop.name);
     const mouseImage = screen.getByAltText(mockMouse.name);
 
-    expect(laptopImage).toHaveAttribute(
-      'src',
-      `/api/v1/product/product-photo/${mockLaptop._id}`
-    );
-    expect(mouseImage).toHaveAttribute(
-      'src',
-      `/api/v1/product/product-photo/${mockMouse._id}`
-    );
+    expect(laptopImage).toHaveAttribute('src', `/api/v1/product/product-photo/${mockLaptop._id}`);
+    expect(mouseImage).toHaveAttribute('src', `/api/v1/product/product-photo/${mockMouse._id}`);
   });
 
   it('displays product links with correct paths', async () => {
     renderWithRouter(<Products />);
 
-    const laptopLink = await screen.findByRole('link', {
-      name: new RegExp(mockLaptop.name),
-    });
-    const mouseLink = screen.getByRole('link', {
-      name: new RegExp(mockMouse.name),
-    });
+    const laptopLink = await screen.findByRole('link', { name: new RegExp(mockLaptop.name) });
+    const mouseLink = screen.getByRole('link', { name: new RegExp(mockMouse.name) });
 
-    expect(laptopLink).toHaveAttribute(
-      'href',
-      `/dashboard/admin/product/${mockLaptop.slug}`
-    );
-    expect(mouseLink).toHaveAttribute(
-      'href',
-      `/dashboard/admin/product/${mockMouse.slug}`
-    );
+    expect(laptopLink).toHaveAttribute('href', `/dashboard/admin/product/${mockLaptop.slug}`);
+    expect(mouseLink).toHaveAttribute('href', `/dashboard/admin/product/${mockMouse.slug}`);
   });
 
   it('shows an error message when fetching products fails', async () => {
