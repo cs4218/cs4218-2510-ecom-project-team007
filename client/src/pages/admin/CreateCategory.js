@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from 'antd';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import Layout from './../../components/Layout';
-import AdminMenu from './../../components/AdminMenu';
+import AdminMenu from '../../components/AdminMenu';
 import CategoryForm from '../../components/Form/CategoryForm';
+import Layout from '../../components/Layout';
 import { normalizeText } from '../../utils/textUtils';
 
 const CreateCategory = () => {
@@ -124,7 +124,6 @@ const CreateCategory = () => {
           <div className="col-md-9">
             <h1>Manage Category</h1>
 
-            {/* Category Form */}
             <div className="p-3 w-50">
               <CategoryForm
                 handleSubmit={handleSubmit}
@@ -133,7 +132,6 @@ const CreateCategory = () => {
               />
             </div>
 
-            {/* Categories Table */}
             <div className="w-75">
               <table className="table">
                 <thead>
@@ -143,7 +141,7 @@ const CreateCategory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories?.map(category => (
+                  {categories?.map((category) => (
                     <tr key={category._id}>
                       <td>{category.name}</td>
                       <td>

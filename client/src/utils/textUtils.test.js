@@ -17,8 +17,8 @@ describe('normalizeText', () => {
     ['empty', ''],
     ['null', null],
     ['undefined', undefined],
-  ])('returns an empty string when input is %s', (description, input) => {
-    expect(normalizeText(input)).toBe('');
+  ])('returns an empty string when text is %s', (_, text) => {
+    expect(normalizeText(text)).toBe('');
   });
 
   it('preserves already normalized text', () => {

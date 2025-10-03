@@ -11,10 +11,6 @@ jest.mock('react-hot-toast', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../components/Layout', () =>
-  jest.fn(({ children, title }) => <div title={title}>{children}</div>)
-);
-
 jest.mock('../../components/AdminMenu', () =>
   jest.fn(() => <div>Admin Menu</div>)
 );
@@ -33,6 +29,10 @@ jest.mock('../../components/Form/CategoryForm', () =>
   ))
 );
 
+jest.mock('../../components/Layout', () =>
+  jest.fn(({ children, title }) => <div title={title}>{children}</div>)
+);
+
 jest.mock('../../utils/textUtils', () => ({
   normalizeText: jest.fn(text => text),
 }));
@@ -40,10 +40,10 @@ jest.mock('../../utils/textUtils', () => ({
 describe('CreateCategory Component', () => {
   const id = '1';
   const name = 'Electronics';
-  const category = { _id: id, name };
+  const mockCategory = { _id: id, name };
 
-  const categories = [
-    { _id: '1', name: 'Electronics' },
+  const mockCategories = [
+    mockCategory,
     { _id: '2', name: 'Books' },
     { _id: '3', name: 'Clothing' },
   ];
@@ -56,7 +56,7 @@ describe('CreateCategory Component', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders the component with category form and table', async () => {
+  it('renders the component with a category form and table', async () => {
     axios.get.mockResolvedValue({ data: { category: [] } });
 
     render(<CreateCategory />);
@@ -73,29 +73,27 @@ describe('CreateCategory Component', () => {
   });
 
   it('displays existing categories in the table', async () => {
-    axios.get.mockResolvedValue({ data: { category: categories } });
+    axios.get.mockResolvedValue({ data: { category: mockCategories } });
 
     render(<CreateCategory />);
 
-    await waitFor(() => {
-      categories.forEach(({ name }) => {
-        expect(screen.getByRole('cell', { name })).toBeInTheDocument();
-      });
+    await screen.findByRole('cell', { name: mockCategory.name });
+
+    mockCategories.forEach(({ name }) => {
+      expect(screen.getByRole('cell', { name })).toBeInTheDocument();
     });
   });
 
   it('renders edit and delete buttons for each category', async () => {
-    axios.get.mockResolvedValue({ data: { category: categories } });
+    axios.get.mockResolvedValue({ data: { category: mockCategories } });
 
     render(<CreateCategory />);
 
-    await waitFor(() => {
-      const editButtons = screen.getAllByRole('button', { name: /edit/i });
-      const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    const editButtons = await screen.findAllByRole('button', { name: /edit/i });
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
 
-      expect(editButtons).toHaveLength(categories.length);
-      expect(deleteButtons).toHaveLength(categories.length);
-    });
+    expect(editButtons).toHaveLength(mockCategories.length);
+    expect(deleteButtons).toHaveLength(mockCategories.length);
   });
 
   it('shows an error message when fetching categories fails', async () => {
@@ -153,7 +151,7 @@ describe('CreateCategory Component', () => {
     it('displays the new category in the table after it is created', async () => {
       axios.get
         .mockResolvedValueOnce({ data: { category: [] } })
-        .mockResolvedValueOnce({ data: { category: [category] } });
+        .mockResolvedValueOnce({ data: { category: [mockCategory] } });
 
       render(<CreateCategory />);
 
@@ -165,7 +163,7 @@ describe('CreateCategory Component', () => {
     it('shows an error message when creating a duplicate category', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      axios.get.mockResolvedValue({ data: { category: [category] } });
+      axios.get.mockResolvedValue({ data: { category: [mockCategory] } });
       axios.post.mockRejectedValue({
         response: { status: 409 },
         message: 'Category already exists',
@@ -221,7 +219,7 @@ describe('CreateCategory Component', () => {
     };
 
     beforeEach(() => {
-      axios.get.mockResolvedValue({ data: { category: [category] } });
+      axios.get.mockResolvedValue({ data: { category: [mockCategory] } });
       axios.put.mockResolvedValue();
     });
 
@@ -284,11 +282,11 @@ describe('CreateCategory Component', () => {
     });
 
     it('displays the updated category in the table after it is edited', async () => {
-      const updatedCategory = { _id: '1', name: updatedName };
+      const mockUpdatedCategory = { _id: '1', name: updatedName };
 
       axios.get
-        .mockResolvedValueOnce({ data: { category: [category] } })
-        .mockResolvedValueOnce({ data: { category: [updatedCategory] } });
+        .mockResolvedValueOnce({ data: { category: [mockCategory] } })
+        .mockResolvedValueOnce({ data: { category: [mockUpdatedCategory] } });
 
       render(<CreateCategory />);
 
@@ -311,9 +309,14 @@ describe('CreateCategory Component', () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const conflictingName = 'Books';
-      const conflictingCategory = { _id: '2', name: conflictingName };
+      const mockConflictingCategory = { _id: '2', name: conflictingName };
 
-      axios.get.mockResolvedValue({ data: { category: [category, conflictingCategory] } });
+      axios.get.mockResolvedValue({
+        data: {
+          category: [mockCategory, mockConflictingCategory],
+        },
+      });
+
       axios.put.mockRejectedValue({
         response: { status: 409 },
         message: 'Category already exists',
@@ -354,7 +357,7 @@ describe('CreateCategory Component', () => {
     };
 
     beforeEach(() => {
-      axios.get.mockResolvedValue({ data: { category: [category] } });
+      axios.get.mockResolvedValue({ data: { category: [mockCategory] } });
       axios.delete.mockResolvedValue();
     });
 
@@ -393,7 +396,7 @@ describe('CreateCategory Component', () => {
       jest.spyOn(Modal, 'confirm').mockImplementation(({ onOk }) => onOk());
 
       axios.get
-        .mockResolvedValueOnce({ data: { category: [category] } })
+        .mockResolvedValueOnce({ data: { category: [mockCategory] } })
         .mockResolvedValueOnce({ data: { category: [] } });
 
       render(<CreateCategory />);
