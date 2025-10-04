@@ -38,7 +38,7 @@ const mockAuthData = {
 describe('Update profile page', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue([mockAuthData, jest.fn()]);
-    localStorage.clear();
+    localStorage.setItem("auth", JSON.stringify(mockAuthData));
     jest.clearAllMocks();
   });
 
@@ -214,7 +214,6 @@ describe('Update profile page', () => {
   test("it updates localstorage on successful profile update", async () => {
     const updatedUser = { ...mockAuthData.user, name: "Lily Rose" };
     axios.put.mockResolvedValue({ data: { updatedUser } });
-    localStorage.setItem("auth", JSON.stringify(mockAuthData));
     render(<Profile />);
     const submitButton = screen.getByRole("button", { name: "UPDATE" });
     fireEvent.click(submitButton);
