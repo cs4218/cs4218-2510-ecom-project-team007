@@ -20,9 +20,13 @@ const CartPage = () => {
   const totalPrice = () => {
     try {
       let total = 0;
-      cart?.map((item) => {
-        total = total + item.price;
+      cart?.forEach((item) => {
+        if (typeof item.price !== "number" || isNaN(item.price)) {
+          throw new Error("Invalid price in cart");
+        }
+        total += item.price;
       });
+      
       return total.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
@@ -31,6 +35,7 @@ const CartPage = () => {
       console.log(error);
     }
   };
+
   //delete item
   const removeCartItem = (pid) => {
     try {
