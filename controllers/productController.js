@@ -95,6 +95,12 @@ export const getProductController = async (req, res) => {
 // get single product from its slug
 export const getSingleProductController = async (req, res) => {
   try {
+    if (!req.params)
+      return res.status(400).send({
+        success: false,
+        message: "Missing parameter in request"
+      });
+
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .select("-photo")
@@ -126,6 +132,12 @@ export const getSingleProductController = async (req, res) => {
 // get photo
 export const productPhotoController = async (req, res) => {
   try {
+    if (!req.params)
+      return res.status(400).send({
+        success: false,
+        message: "Missing parameter in request"
+      });
+
     const product = await productModel.findById(req.params.pid).select("photo");
 
     if (!product || !product.photo || !product.photo.data) {
@@ -266,24 +278,38 @@ export const productCountController = async (req, res) => {
 // product list base on page
 export const productListController = async (req, res) => {
   try {
+    if (!req.params)
+      return res.status(400).send({
+        success: false,
+        message: "Missing parameter in request"
+      });
+ 
     const perPage = 6;
     const page = req.params.page ? req.params.page : 1;
+
+    if (page < 0)
+      return res.status(400).send({
+        success: false,
+        message: "Invalid 'page' parameter in request"
+      });
+
     const products = await productModel
       .find({})
       .select("-photo")
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
-      products,
+      products
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: "error in per page ctrl",
-      error,
+      message: "Error in product list",
+      error: error.message,
     });
   }
 };
