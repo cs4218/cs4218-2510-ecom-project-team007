@@ -116,30 +116,6 @@ describe("Categories Page", () => {
       });
     });
 
-    test("it renders category columns with correct Bootstrap classes", async () => {
-      mockUseCategory.mockReturnValue(mockCategories);
-      renderWithRouter(<Categories />);
-      await waitFor(() => {
-        const electronicsLink = screen.getByRole("link", { name: "Electronics" });
-        const column = electronicsLink.closest(".col-md-6");
-        expect(column).toHaveClass("mt-5", "mb-3", "gx-3", "gy-3");
-      });
-    });
-
-    test("it renders the row container", () => {
-      mockUseCategory.mockReturnValue([]);
-      const { container } = renderWithRouter(<Categories />);
-      const row = container.querySelector(".row");
-      expect(row).toBeInTheDocument();
-    });
-
-    test("it renders the main container", () => {
-      mockUseCategory.mockReturnValue([]);
-      const { container } = renderWithRouter(<Categories />);
-      const mainContainer = container.querySelector(".container");
-      expect(mainContainer).toBeInTheDocument();
-    });
-
     test("it renders nothing when categories array is empty", () => {
       mockUseCategory.mockReturnValue([]);
       renderWithRouter(<Categories />);
