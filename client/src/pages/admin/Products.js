@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import AdminMenu from '../../components/AdminMenu';
 import Layout from '../../components/Layout';
 
+const actions = ['created', 'updated', 'deleted'];
+
 const Products = () => {
+  const location = useLocation();
   const [products, setProducts] = useState([]);
 
   const getAllProducts = async () => {
@@ -21,6 +24,21 @@ const Products = () => {
   useEffect(() => {
     void getAllProducts();
   }, []);
+
+  useEffect(() => {
+    const state = location.state;
+    if (!state) {
+      return;
+    }
+
+    for (const action of actions) {
+      if (state[action]) {
+        toast.success(`Product ${action} successfully`);
+        window.history.replaceState({}, document.title);
+        break;
+      }
+    }
+  }, [location]);
 
   return (
     <Layout>
