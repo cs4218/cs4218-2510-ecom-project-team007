@@ -435,7 +435,7 @@ describe("getAllOrdersController", () => {
     jest.clearAllMocks();
   });
 
-  test("should return all orders successfully", async () => {
+  it("should return all orders successfully", async () => {
     const mockOrders = [
       { _id: "order1", buyer: { _id: "b1", name: "John" }, products: [{ name: "item1" }] },
       { _id: "order2", buyer: { _id: "b2", name: "Alice" }, products: [{ name: "item2" }] },
@@ -454,7 +454,7 @@ describe("getAllOrdersController", () => {
     expect(res.json).toHaveBeenCalledWith(mockOrders);
   });
 
-  test("should handle errors gracefully", async () => {
+  it("should handle errors gracefully", async () => {
     const mockError = new Error("DB failed");
     orderModel.find.mockImplementation(() => {
       throw mockError;
@@ -485,7 +485,7 @@ describe("orderStatusController", () => {
     jest.clearAllMocks();
   });
 
-  test("should update order status successfully", async () => {
+  it("should update order status successfully", async () => {
     const mockUpdatedOrder = { _id: "order123", status: "Shipped" };
 
     req.params.orderId = "order123";
@@ -504,7 +504,7 @@ describe("orderStatusController", () => {
     expect(res.json).toHaveBeenCalledWith(mockUpdatedOrder);
   });
 
-  test("should handle errors gracefully", async () => {
+  it("should handle errors gracefully", async () => {
     const mockError = new Error("DB failed");
     req.params.orderId = "order123";
     req.body.status = "Delivered";
