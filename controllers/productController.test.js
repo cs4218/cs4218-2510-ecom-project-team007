@@ -690,7 +690,7 @@ describe("Test productListController", () => {
   });
 
   describe("Proper error handling when", () => {
-    it ("params field not included in request", async () => {
+    it("params field not included in request", async () => {
       await productListController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
@@ -700,7 +700,7 @@ describe("Test productListController", () => {
       });
     });
 
-    it ("invalid page value", async () => {
+    it("invalid page value", async () => {
       const req = { params: { page: -1 }};
 
       await productListController(req, res);
@@ -712,7 +712,7 @@ describe("Test productListController", () => {
       });
     });
 
-    it ("server error", async () => {
+    it("server error", async () => {
       req = { params: { page: 1 }};
       const errorMessage = "DB query error";
       productModel.find.mockImplementation(() => { throw new Error(errorMessage); });
