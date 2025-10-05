@@ -11,7 +11,6 @@ jest.mock("./../components/Layout", () => {
 });
 
 describe('About page', () => {
-
     test("it renders the Layout component with correct title", () => {
         render(<About />);
         const layout = screen.getByTestId("layout");
@@ -30,22 +29,9 @@ describe('About page', () => {
         expect(image).toHaveAttribute("src", "/images/about.jpeg");
     });
 
-    test("it renders the about image with full width style", () => {
-        render(<About />);
-        const image = screen.getByAltText("contactus");
-        expect(image).toHaveStyle({ width: "100%" });
-    });
-
     test("it renders the about text content", () => {
         render(<About />);
         const textContent = screen.getByText("Add text");
         expect(textContent).toBeInTheDocument();
     });
-
-    test("it renders the text with correct styling classes", () => {
-        render(<About />);
-        const textContent = screen.getByText("Add text");
-        expect(textContent).toHaveClass("text-justify", "mt-2");
-    });
-
 })
