@@ -95,6 +95,12 @@ export const getProductController = async (req, res) => {
 // get single product from its slug
 export const getSingleProductController = async (req, res) => {
   try {
+    if (!req.params)
+      return res.status(400).send({
+        success: false,
+        message: "Missing parameter in request"
+      });
+
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .select("-photo")
@@ -126,6 +132,12 @@ export const getSingleProductController = async (req, res) => {
 // get photo
 export const productPhotoController = async (req, res) => {
   try {
+    if (!req.params)
+      return res.status(400).send({
+        success: false,
+        message: "Missing parameter in request"
+      });
+
     const product = await productModel.findById(req.params.pid).select("photo");
 
     if (!product || !product.photo || !product.photo.data) {

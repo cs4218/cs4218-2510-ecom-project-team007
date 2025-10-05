@@ -97,6 +97,18 @@ describe("Test getSingleProductController", () => {
     });
   });
 
+  it("Should handle empty requests (400)", async () => {
+    req = {};
+
+    await getSingleProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing parameter in request"
+    });
+  });
+
   it("Should handle no product found (404)", async () => {
     const query = {
       select: jest.fn().mockReturnThis(),
@@ -162,6 +174,18 @@ describe("Test productPhotoController", () => {
     expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith(testPhoto.data);
+  });
+
+  it("Should handle empty requests (400)", async () => {
+    req = {};
+
+    await productPhotoController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing parameter in request"
+    });
   });
 
   it("Should handle photo not found (404)", async () => {
@@ -335,6 +359,7 @@ describe("Test productFiltersController", () => {
   });
 });
 
+
 describe("Test productCountController", () => {
   let req, res;
 
@@ -380,6 +405,7 @@ describe("Test productCountController", () => {
     );
   });
 });
+
 
 describe("Test productListController", () => {
   let req, res;
@@ -513,8 +539,8 @@ describe("Test productListController", () => {
   });
 });
 
+
 // paymentController.test.js
-const { describe } = require("node:test");
 
 /********************************Payment Test Case*************************************** */
 
