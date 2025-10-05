@@ -25,30 +25,37 @@ export const createProductController = async (req, res) => {
     // validation
     switch (true) {
       case !name:
-        return res.status(500).send({ error: "Name is Required" });
+        return res.status(400).send({ error: "Name is Required" });
       case !description:
-        return res.status(500).send({ error: "Description is Required" });
+        return res.status(400).send({ error: "Description is Required" });
       case !price:
-        return res.status(500).send({ error: "Price is Required" });
+        return res.status(400).send({ error: "Price is Required" });
       case !category:
-        return res.status(500).send({ error: "Category is Required" });
+        return res.status(400).send({ error: "Category is Required" });
       case !quantity:
-        return res.status(500).send({ error: "Quantity is Required" });
+        return res.status(400).send({ error: "Quantity is Required" });
       case !shipping:
-        return res.status(500).send({ error: "Shipping is Required" });
-      case photo && photo.size > 1000000:
+        return res.status(400).send({ error: "Shipping is Required" });
+      case !photo || photo.size > 1000000:
         return res
-          .status(500)
-          .send({ error: "Photo is required and should be less then 1mb" });
+          .status(400)
+          .send({ error: "Photo is required and should be less then 1MB" });
     }
+
+    // additional validations
+    if (Number(price) < 0)
+      return res.status(400).send({ error: "Invalid price value" });
+
+    const tmp_quantity = Number(quantity);
+    if (!Number.isInteger(tmp_quantity) || tmp_quantity < 0) // zero already handled above
+      return res.status(400).send({ error: "Invalid quantity value" });
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
-    if (photo) {
-      products.photo.data = fs.readFileSync(photo.path);
-      products.photo.contentType = photo.type;
-    }
+    products.photo.data = fs.readFileSync(photo.path);
+    products.photo.contentType = photo.type;
 
     await products.save();
+
     res.status(201).send({
       success: true,
       message: "Product created successfully",
@@ -59,7 +66,7 @@ export const createProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
+      error: error.message,
       message: "Error in creating product",
     });
   }
