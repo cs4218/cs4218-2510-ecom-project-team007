@@ -14,10 +14,6 @@ const CreateCategory = () => {
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState('');
 
-  useEffect(() => {
-    void getAllCategories();
-  }, []);
-
   const getAllCategories = async () => {
     try {
       const { data } = await axios.get('/api/v1/category/get-category');
@@ -27,6 +23,10 @@ const CreateCategory = () => {
       toast.error('Failed to load categories');
     }
   };
+
+  useEffect(() => {
+    void getAllCategories();
+  }, []);
 
   // Create new category
   const handleSubmit = async (e) => {

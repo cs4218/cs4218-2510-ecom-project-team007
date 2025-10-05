@@ -20,12 +20,6 @@ const AdminOrders = () => {
   const [auth] = useAuth();
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    if (auth?.token) {
-      void getAllOrders();
-    }
-  }, [auth?.token]);
-
   const getAllOrders = async () => {
     try {
       const { data } = await axios.get('/api/v1/auth/all-orders');
@@ -35,6 +29,12 @@ const AdminOrders = () => {
       toast.error('Failed to load orders');
     }
   };
+
+  useEffect(() => {
+    if (auth?.token) {
+      void getAllOrders();
+    }
+  }, [auth?.token]);
 
   // Update order status
   const handleChange = async (orderId, newStatus) => {
