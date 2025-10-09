@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { productSchema } from '../../schemas/productSchema';
 import { validateProductPhoto } from '../../utils/photoValidation';
+import { PLACEHOLDER_IMAGE } from '../../utils/productImage';
 import UpdateProduct from './UpdateProduct';
 
 jest.mock('antd', () => ({
@@ -74,6 +75,9 @@ describe('UpdateProduct Component', () => {
     price: 999.99,
     category: mockCategories[0],
     quantity: 10,
+    photo: {
+      contentType: 'image/jpeg',
+    },
     shipping: true,
   };
 
@@ -146,6 +150,27 @@ describe('UpdateProduct Component', () => {
     const img = await screen.findByAltText(mockProduct.name);
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', `/api/v1/product/product-photo/${mockProduct._id}`);
+  });
+
+  it('displays the placeholder image when the product has no photo', async () => {
+    axios.get.mockImplementation((url) => {
+      if (url.includes('get-product')) {
+        return Promise.resolve({
+          data: {
+            product: { ...mockProduct, photo: null },
+          },
+        });
+      }
+      if (url.includes('get-category')) {
+        return Promise.resolve({ data: { category: mockCategories } });
+      }
+    });
+
+    render(<UpdateProduct />);
+
+    const img = await screen.findByAltText('Product placeholder');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', PLACEHOLDER_IMAGE);
   });
 
   it('displays existing categories in the category dropdown menu', async () => {
@@ -222,7 +247,7 @@ describe('UpdateProduct Component', () => {
       const input = await screen.findByLabelText('Upload photo');
       fireEvent.change(input, { target: { files: [file] } });
 
-      const img = screen.getByAltText('Preview');
+      const img = screen.getByAltText('Product preview');
       expect(img).toBeInTheDocument();
       expect(img).toHaveAttribute('src', 'mock-url');
     });

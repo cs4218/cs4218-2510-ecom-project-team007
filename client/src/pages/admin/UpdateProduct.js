@@ -7,16 +7,18 @@ import AdminMenu from '../../components/AdminMenu';
 import Layout from '../../components/Layout';
 import { productSchema } from '../../schemas/productSchema';
 import { validateProductPhoto } from '../../utils/photoValidation';
+import { PLACEHOLDER_IMAGE } from '../../utils/productImage';
 
 const UpdateProduct = () => {
   const navigate = useNavigate();
   const params = useParams();
 
-  const [id, setId] = useState('');
   const [categories, setCategories] = useState([]);
 
+  const [id, setId] = useState('');
   const [category, setCategory] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [hasPhoto, setHasPhoto] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -30,6 +32,7 @@ const UpdateProduct = () => {
 
       setId(product._id);
       setCategory(product.category._id);
+      setHasPhoto(!!product.photo);
       setName(product.name);
       setDescription(product.description);
       setPrice(product.price);
@@ -192,25 +195,23 @@ const UpdateProduct = () => {
 
               {/* Photo Preview */}
               <div className="mb-3">
-                {photo instanceof File ? (
-                  <div className="text-center">
+                <div className="text-center">
+                  {photo instanceof File ? (
                     <img
                       src={URL.createObjectURL(photo)}
-                      alt="Preview"
+                      alt="Product preview"
                       height="200px"
                       className="img img-responsive"
                     />
-                  </div>
-                ) : (
-                  <div className="text-center">
+                  ) : (
                     <img
-                      src={`/api/v1/product/product-photo/${id}`}
-                      alt={name}
+                      src={hasPhoto ? `/api/v1/product/product-photo/${id}` : PLACEHOLDER_IMAGE}
+                      alt={hasPhoto ? name : 'Product placeholder'}
                       height="200px"
                       className="img img-responsive"
                     />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div className="mb-3">

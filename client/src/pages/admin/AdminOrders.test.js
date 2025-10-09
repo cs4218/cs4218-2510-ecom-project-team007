@@ -45,6 +45,9 @@ describe('AdminOrders Component', () => {
     name: 'Laptop',
     description: 'High-performance laptop with 16GB RAM',
     price: 999,
+    photo: {
+      contentType: 'image/jpeg',
+    },
   };
 
   const mockOrder = {

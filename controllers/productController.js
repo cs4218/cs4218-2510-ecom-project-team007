@@ -78,7 +78,7 @@ export const getProductController = async (req, res) => {
     const products = await productModel
       .find({})
       .populate("category")
-      .select("-photo")
+      .select("-photo.data")
       .limit(12)
       .sort({ createdAt: -1 });
 
@@ -110,7 +110,7 @@ export const getSingleProductController = async (req, res) => {
 
     const product = await productModel
       .findOne({ slug: req.params.slug })
-      .select("-photo")
+      .select("-photo.data")
       .populate("category");
 
     if (!product) {
@@ -302,7 +302,7 @@ export const productListController = async (req, res) => {
 
     const products = await productModel
       .find({})
-      .select("-photo")
+      .select("-photo.data")
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ createdAt: -1 });
@@ -353,7 +353,7 @@ export const realtedProductController = async (req, res) => {
         category: cid,
         _id: { $ne: pid },
       })
-      .select("-photo")
+      .select("-photo.data")
       .limit(3)
       .populate("category");
     res.status(200).send({

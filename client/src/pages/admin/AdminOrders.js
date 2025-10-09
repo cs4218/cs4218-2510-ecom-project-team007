@@ -7,6 +7,7 @@ import AdminMenu from '../../components/AdminMenu';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/auth';
 import { groupProductsById } from '../../utils/orderUtils';
+import { getProductImageProps } from '../../utils/productImage';
 
 const statuses = [
   'Pending',
@@ -105,9 +106,8 @@ const AdminOrders = () => {
                     <div key={`${order._id}-${product._id}`} className="row mb-2 p-3 card flex-row">
                       <div className="col-md-4">
                         <img
-                          src={`/api/v1/product/product-photo/${product._id}`}
+                          {...getProductImageProps(product)}
                           className="card-img-top"
-                          alt={product.name}
                           width="100px"
                           height="100px"
                         />
