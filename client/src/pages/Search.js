@@ -4,7 +4,7 @@ import { useSearch } from "../context/search";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-
+import { getProductImageProps } from "../utils/productImage";
 
 const Search = () => {
   const navigate = useNavigate();
