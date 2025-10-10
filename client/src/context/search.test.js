@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useSearch, SearchProvider } from "./search";
 
@@ -32,7 +32,10 @@ describe("test search context", () => {
     expect(screen.getByTestId("results").textContent).toBe("");
 
     // Simulate user click to update the context
-    await userEvent.click(screen.getByText("Update"));
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      await userEvent.click(screen.getByText("Update"));
+    });
 
     // Updated values
     expect(screen.getByTestId("keyword").textContent).toBe("banana");
