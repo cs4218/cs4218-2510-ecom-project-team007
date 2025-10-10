@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import axios from "axios";
 import { BrowserRouter } from "react-router-dom";
 import HomePage from "../pages/HomePage";
@@ -98,11 +98,14 @@ describe("HomePage Component", () => {
     );
 
   it("renders static elements on homepage", async () => {
-    renderHome();
-    expect(screen.getByText(/Home/i)).toBeInTheDocument();
-    expect(screen.getByAltText(/bannerimage/i)).toBeInTheDocument();
-    expect(screen.getByText(/Filter By Category/i)).toBeInTheDocument();
-    expect(screen.getByText(/Filter By Price/i)).toBeInTheDocument();
+    //eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      renderHome();
+    });
+    expect(await screen.findByText(/Home/i)).toBeInTheDocument();
+    expect(await screen.findByAltText(/bannerimage/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Filter By Category/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Filter By Price/i)).toBeInTheDocument();
   });
 
   it("renders a fetched product", async () => {
@@ -112,7 +115,10 @@ describe("HomePage Component", () => {
   });
 
   it("filters products and shows filtered product", async () => {
-    renderHome();
+    //eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      renderHome();
+    });
 
     // Use label text to find the checkbox
     const categoryCheckbox = await screen.findByLabelText("Electronics");
@@ -123,8 +129,10 @@ describe("HomePage Component", () => {
   });
 
   it("clicking 'More Details' triggers navigate", async () => {
-
-    renderHome();
+    //eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      renderHome();
+    });
 
     const product = await screen.findByText("Laptop");
     expect(product).toBeInTheDocument();
@@ -137,7 +145,10 @@ describe("HomePage Component", () => {
     const setCart = jest.fn();
     useCart.mockImplementation(() => [[], setCart]);
 
-    renderHome();
+    //eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      renderHome();
+    });
 
     const addToCartBtn = await screen.findByText(/ADD TO CART/i);
     fireEvent.click(addToCartBtn);
