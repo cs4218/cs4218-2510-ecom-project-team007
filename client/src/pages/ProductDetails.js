@@ -3,6 +3,7 @@ import Layout from "./../components/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
+import { getProductImageProps } from "../utils/productImage";
 
 const ProductDetails = () => {
   const params = useParams();
@@ -42,9 +43,8 @@ const ProductDetails = () => {
       <div className="row container product-details">
         <div className="col-md-6">
           <img
-            src={`/api/v1/product/product-photo/${product._id}`}
+            {...getProductImageProps(product)}
             className="card-img-top"
-            alt={product.name}
             height="300"
             width={"350px"}
           />
@@ -74,11 +74,7 @@ const ProductDetails = () => {
         <div className="d-flex flex-wrap">
           {relatedProducts?.map((p) => (
             <div className="card m-2" key={p._id}>
-              <img
-                src={`/api/v1/product/product-photo/${p._id}`}
-                className="card-img-top"
-                alt={p.name}
-              />
+              <img {...getProductImageProps(p)} className="card-img-top" />
               <div className="card-body">
                 <div className="card-name-price">
                   <h5 className="card-title">{p.name}</h5>

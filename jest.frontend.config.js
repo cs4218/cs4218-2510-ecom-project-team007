@@ -25,6 +25,8 @@ export default {
     "<rootDir>/client/src/context/**/*.test.js",
     "<rootDir>/client/src/hooks/**/*.test.js",
     "<rootDir>/client/src/pages/**/*.test.js",
+    "<rootDir>/client/src/schemas/**/*.test.js",
+    "<rootDir>/client/src/utils/**/*.test.js",
   ],
 
   // jest code coverage

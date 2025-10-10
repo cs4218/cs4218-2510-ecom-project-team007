@@ -296,7 +296,7 @@ describe('CreateCategory Component', () => {
       expect(await screen.findByRole('cell', { name: updatedName })).toBeInTheDocument();
     });
 
-    it('shows an error message when the updated name is unchanged', async () => {
+    it('shows an error message when the category name is unchanged', async () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
@@ -305,7 +305,7 @@ describe('CreateCategory Component', () => {
       expect(toast.error).toHaveBeenCalledWith('Please enter a new name');
     });
 
-    it('shows an error message when the updated name already exists', async () => {
+    it('shows an error message when the category name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const conflictingName = 'Books';
