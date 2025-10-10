@@ -7,6 +7,7 @@ import DropIn from "braintree-web-drop-in-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
+import { getProductImageProps } from "../utils/productImage";
 
 const CartPage = () => {
   const [auth, setAuth] = useAuth();
@@ -108,9 +109,8 @@ const CartPage = () => {
                 <div className="row card flex-row" key={p._id}>
                   <div className="col-md-4">
                     <img
-                      src={`/api/v1/product/product-photo/${p._id}`}
+                      {...getProductImageProps(p)}
                       className="card-img-top"
-                      alt={p.name}
                       width="100%"
                       height={"130px"}
                     />

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import AdminMenu from '../../components/AdminMenu';
 import Layout from '../../components/Layout';
+import { getProductImageProps } from '../../utils/productImage';
+
+const actions = ['created', 'updated', 'deleted'];
 
 const Products = () => {
+  const location = useLocation();
   const [products, setProducts] = useState([]);
 
   const getAllProducts = async () => {
@@ -21,6 +25,21 @@ const Products = () => {
   useEffect(() => {
     void getAllProducts();
   }, []);
+
+  useEffect(() => {
+    const state = location.state;
+    if (!state) {
+      return;
+    }
+
+    for (const action of actions) {
+      if (state[action]) {
+        toast.success(`Product ${action} successfully`);
+        window.history.replaceState({}, document.title);
+        break;
+      }
+    }
+  }, [location]);
 
   return (
     <Layout>
@@ -39,12 +58,8 @@ const Products = () => {
                 to={`/dashboard/admin/product/${product.slug}`}
                 className="product-link"
               >
-                <div className="card m-2" style={{ width: "18rem" }}>
-                  <img
-                    src={`/api/v1/product/product-photo/${product._id}`}
-                    className="card-img-top"
-                    alt={product.name}
-                  />
+                <div className="card m-2" style={{ width: '18rem' }}>
+                  <img {...getProductImageProps(product)} className="card-img-top" />
                   <div className="card-body">
                     <h5 className="card-title">{product.name}</h5>
                     <p className="card-text">{product.description}</p>

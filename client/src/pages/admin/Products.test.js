@@ -22,15 +22,21 @@ describe('Products Component', () => {
   const mockLaptop = {
     _id: 'product1',
     name: 'Laptop',
-    description: 'High-performance laptop with 16GB RAM',
     slug: 'laptop',
+    description: 'High-performance laptop with 16GB RAM',
+    photo: {
+      contentType: 'image/jpeg',
+    },
   };
 
   const mockMouse = {
     _id: 'product2',
     name: 'Mouse',
-    description: 'Wireless mouse with ergonomic design',
     slug: 'mouse',
+    description: 'Wireless mouse with ergonomic design',
+    photo: {
+      contentType: 'image/jpeg',
+    },
   };
 
   const mockProducts = [mockLaptop, mockMouse];

@@ -5,6 +5,22 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/auth';
 import AdminOrders from './AdminOrders';
 
+jest.mock('antd', () => ({
+  Select: jest.fn(({ value, onChange, options }) => (
+    <select
+      aria-label="Select order status"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )),
+}));
+
 jest.mock('axios');
 jest.mock('react-hot-toast', () => ({
   success: jest.fn(),
@@ -23,28 +39,15 @@ jest.mock('../../context/auth', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('antd', () => ({
-  Select: jest.fn(({ value, onChange, options }) => (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label="Select order status"
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  )),
-}));
-
 describe('AdminOrders Component', () => {
   const mockProduct = {
     _id: 'product1',
     name: 'Laptop',
     description: 'High-performance laptop with 16GB RAM',
     price: 999,
+    photo: {
+      contentType: 'image/jpeg',
+    },
   };
 
   const mockOrder = {
