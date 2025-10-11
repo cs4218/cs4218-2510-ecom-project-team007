@@ -254,7 +254,7 @@ describe('CreateProduct Component', () => {
 
       axios.post.mockRejectedValue({
         response: { status: 409 },
-        message: 'Product already exists',
+        message: 'Product name already exists',
       });
 
       render(<CreateProduct />);
@@ -265,7 +265,7 @@ describe('CreateProduct Component', () => {
       fireEvent.click(createButton);
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Product already exists');
+        expect(toast.error).toHaveBeenCalledWith('Product name already exists');
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();

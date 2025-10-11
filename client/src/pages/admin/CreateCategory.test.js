@@ -308,12 +308,11 @@ describe('CreateCategory Component', () => {
     it('shows an error message when the category name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
-      const conflictingName = 'Books';
-      const mockConflictingCategory = { _id: '2', name: conflictingName };
+      const existingName = 'Books';
 
       axios.get.mockResolvedValue({
         data: {
-          category: [mockCategory, mockConflictingCategory],
+          category: [mockCategory, { _id: '2', name: existingName }],
         },
       });
 
@@ -325,7 +324,7 @@ describe('CreateCategory Component', () => {
       render(<CreateCategory />);
 
       await openEditModal(name);
-      await updateCategory(conflictingName);
+      await updateCategory(existingName);
 
       expect(toast.error).toHaveBeenCalledWith('Category already exists');
     });
