@@ -13,12 +13,11 @@ export const createCategoryController = async (req, res) => {
       });
     }
 
-    // Check for conflicting name
-    const conflictExists = await categoryModel.exists({
+    const nameExists = await categoryModel.exists({
       name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive
     });
 
-    if (conflictExists) {
+    if (nameExists) {
       return res.status(409).send({
         success: false,
         message: 'Category already exists',
@@ -32,7 +31,7 @@ export const createCategoryController = async (req, res) => {
 
     res.status(201).send({
       success: true,
-      message: 'New category created',
+      message: 'Category created successfully',
       category,
     });
   } catch (error) {
@@ -65,13 +64,12 @@ export const updateCategoryController = async (req, res) => {
       });
     }
 
-    // Check for conflicting name
-    const conflictExists = await categoryModel.exists({
+    const nameExists = await categoryModel.exists({
       name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive
       _id: { $ne: id }, // Excludes current category
     });
 
-    if (conflictExists) {
+    if (nameExists) {
       return res.status(409).send({
         success: false,
         message: 'Category already exists',

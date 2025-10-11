@@ -1,6 +1,8 @@
-import fs from "fs";
-import slugify from "slugify";
-import productModel from "../models/productModel";
+import fs from 'fs';
+import slugify from 'slugify';
+import productModel from '../models/productModel';
+import { productSchema } from '../client/src/schemas/productSchema';
+import { validateProductPhoto } from '../client/src/utils/photoValidation';
 import {
   createProductController,
   getProductController,
@@ -9,197 +11,242 @@ import {
   productFiltersController,
   productCountController,
   productListController,
-} from '../controllers/productController';
+} from './productController';
 
-jest.mock("fs", () => ({ readFileSync: jest.fn() }));
+jest.mock('fs');
+jest.mock('slugify');
 jest.mock('../models/productModel');
-jest.mock("slugify", () => ({   // credit to chatGPT
-  __esModule: true,
-  default: (str) => str
+
+jest.mock('../client/src/schemas/productSchema', () => ({
+  productSchema: {
+    validate: jest.fn(),
+  },
 }));
 
+jest.mock('../client/src/utils/photoValidation', () => ({
+  validateProductPhoto: jest.fn(),
+}));
 
-describe("Test createProductController", () => {
+describe('createProductController', () => {
+  const id = '1';
+  const name = 'Laptop';
+  const slug = 'laptop';
+  const description = 'High-performance laptop';
+  const price = 999.99;
+  const category = 'Electronics';
+  const quantity = 10;
+  const shipping = true;
+
   let req, res;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    req = { 
+
+    req = {
       fields: {
-        name: "test",
-        description: "test",
-        price: 420.00,
-        category: "test",
-        quantity: 69,
-        shipping: "test"},
-      files: { photo: {
-        size: 1000000,
-        path: "testPath",
-        type: "testType"
-      }}
+        name,
+        description,
+        price,
+        category,
+        quantity,
+        shipping,
+      },
+      files: {},
     };
+
     res = {
       status: jest.fn().mockReturnThis(),
-      send: jest.fn()
+      send: jest.fn(),
     }
+
+    productSchema.validate.mockResolvedValue();
   });
 
-  describe("Handling of missing fields for", () => {
-    it("name", async () => {
-      delete req.fields.name;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Name is Required" });
-    });
-
-    it("description", async () => {
-      delete req.fields.description;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Description is Required" });
-    });
-
-    it("price", async () => {
-      delete req.fields.price;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Price is Required" });
-    });
-
-    it("category", async () => {
-      delete req.fields.category;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Category is Required" });
-    });
-
-    it("quantity", async () => {
-      delete req.fields.quantity;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Quantity is Required" });
-    });
-
-    it("shipping", async () => {
-      delete req.fields.shipping;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Shipping is Required" });
-    });
-
-    it("photo", async () => {
-      delete req.files.photo;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Photo is required and should be less then 1MB" });
-    });
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  describe("Additional field validation for invalid inputs", () => {
-    it("Photo size more than 1MB", async () => {
-      req.files.photo.size = 1000001;
+  it('creates a new product with a photo successfully', async () => {
+    const mockProduct = {
+      _id: id,
+      name,
+      slug,
+      description,
+      price,
+      category,
+      quantity,
+      shipping,
+      photo: {},
+      save: jest.fn(),
+    };
 
-      await createProductController(req, res);
+    const photo = {
+      path: '/tmp/photo.jpg',
+      type: 'image/jpeg',
+    };
+    const photoData = Buffer.from('photo data');
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Photo is required and should be less then 1MB" });
-    });
+    req.files = { photo };
 
-    it("Negative price", async () => {
-      req.fields.price = -1.20;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Invalid price value" });
-    });
-
-    it("Negative quantity", async () => {
-      req.fields.quantity = -1;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Invalid quantity value" });
-    });
-
-    it("Non-integer quantity", async () => {
-      req.fields.quantity = 1.6;
-
-      await createProductController(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.send).toHaveBeenCalledWith({ error: "Invalid quantity value" });
-    });
-  });
-
-  describe("For successful creation with valid fields", () => {
-    beforeEach(() => {
-      productModel.mockImplementation((init) => ({
-        ...init,             // all the fields passed to new productModel()
-        photo: {},
-        save: jest.fn().mockResolvedValue(true) // mock save
-      }));
-
-      fs.readFileSync.mockImplementation(x => x);
-    });
-
-    it("Should return 201 status", async () => {
-      await createProductController(req, res);
-      expect(res.status).toHaveBeenCalledWith(201);
-    });
-
-    it("Should return created product with expected fields and structure", async () => {
-      const expectedResponse = {
-        ...req.fields,
-        slug: "test",
-        photo: {
-          data: "testPath",
-          contentType: "testType"
-        }
-      };
-
-      await createProductController(req, res);
-
-      expect(res.send).toHaveBeenCalledWith({
-          success: true,
-          message: "Product created successfully",
-          products: expect.objectContaining(expectedResponse)
-      });
-    });
-  });
-
-  it("Should handle other errors", async () => {
-    const errorMessage = "test error";
-    fs.readFileSync.mockImplementation(() => {
-      throw new Error(errorMessage);
-    });
+    validateProductPhoto.mockReturnValue(null);
+    productModel.exists.mockResolvedValue(null);
+    slugify.mockReturnValue(slug);
+    productModel.mockImplementation(() => mockProduct);
+    fs.readFileSync.mockReturnValue(photoData);
 
     await createProductController(req, res);
+
+    expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+    expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+    expect(productModel.exists).toHaveBeenCalledWith({
+      name: { $regex: `^${name}$`, $options: 'i' },
+    });
+
+    expect(slugify).toHaveBeenCalledWith(name);
+    expect(productModel).toHaveBeenCalledWith({ ...req.fields, slug });
+
+    expect(fs.readFileSync).toHaveBeenCalledWith(photo.path);
+    expect(mockProduct.photo.data).toBe(photoData);
+    expect(mockProduct.photo.contentType).toBe(photo.type);
+
+    expect(mockProduct.save).toHaveBeenCalled();
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: 'Product created successfully',
+      product: mockProduct,
+    });
+  });
+
+  it('creates a new product without a photo successfully', async () => {
+    const mockProduct = {
+      _id: id,
+      name,
+      slug,
+      description,
+      price,
+      category,
+      quantity,
+      shipping,
+      save: jest.fn(),
+    };
+
+    productModel.exists.mockResolvedValue(null);
+    slugify.mockReturnValue(slug);
+    productModel.mockImplementation(() => mockProduct);
+
+    await createProductController(req, res);
+
+    expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+    expect(productModel.exists).toHaveBeenCalledWith({
+      name: { $regex: `^${name}$`, $options: 'i' },
+    });
+
+    expect(slugify).toHaveBeenCalledWith(name);
+    expect(productModel).toHaveBeenCalledWith({ ...req.fields, slug });
+    expect(mockProduct.save).toHaveBeenCalled();
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: 'Product created successfully',
+      product: mockProduct,
+    });
+  });
+
+  it('returns 400 error when field validation fails', async () => {
+    const error = 'Validation error';
+    productSchema.validate.mockRejectedValue({ errors: [error] });
+
+    await createProductController(req, res);
+
+    expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: error,
+    });
+  });
+
+  it('returns 400 error when photo validation fails', async () => {
+    const error = 'Invalid file type';
+
+    const photo = {
+      path: '/tmp/photo.gif',
+      type: 'image/gif',
+    };
+
+    req.files = { photo };
+
+    validateProductPhoto.mockReturnValue(error);
+
+    await createProductController(req, res);
+
+    expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+    expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: error,
+    });
+  });
+
+  it('returns 409 error when the product name already exists', async () => {
+    productModel.exists.mockResolvedValue({ _id: id });
+
+    await createProductController(req, res);
+
+    expect(productModel.exists).toHaveBeenCalledWith({
+      name: { $regex: `^${name}$`, $options: 'i' },
+    });
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: 'Product name already exists',
+    });
+  });
+
+  it('returns 500 error when checking for existing name fails', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    productModel.exists.mockRejectedValue(new Error('Database query failed'));
+
+    await createProductController(req, res);
+
+    expect(productModel).not.toHaveBeenCalled();
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      message: "Error in creating product",
-      error: errorMessage
+      message: 'Failed to create product',
+    });
+  });
+
+  it('returns 500 error when saving product fails', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    productModel.exists.mockResolvedValue(null);
+    slugify.mockReturnValue(slug);
+
+    const mockSave = jest.fn().mockRejectedValue(new Error('Database save failed'));
+    productModel.mockImplementation(() => ({ save: mockSave }));
+
+    await createProductController(req, res);
+
+    expect(mockSave).toHaveBeenCalled();
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: 'Failed to create product',
     });
   });
 });
-
 
 describe("Test getProductController", () => {
   let req, res;

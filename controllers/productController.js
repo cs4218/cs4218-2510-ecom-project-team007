@@ -1,16 +1,16 @@
-import productModel from "../models/productModel.js";
-import categoryModel from "../models/categoryModel.js";
-import orderModel from "../models/orderModel.js";
-
-import fs from "fs";
-import slugify from "slugify";
-import braintree from "braintree";
-import dotenv from "dotenv";
+import fs from 'fs';
+import braintree from 'braintree';
+import dotenv from 'dotenv';
+import slugify from 'slugify';
+import categoryModel from '../models/categoryModel.js';
+import orderModel from '../models/orderModel.js';
+import productModel from '../models/productModel.js';
+import { productSchema } from '../client/src/schemas/productSchema.js';
+import { validateProductPhoto } from '../client/src/utils/photoValidation.js';
 
 dotenv.config();
 
-//payment gateway
-var gateway = new braintree.BraintreeGateway({
+const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
   merchantId: process.env.BRAINTREE_MERCHANT_ID,
   publicKey: process.env.BRAINTREE_PUBLIC_KEY,
@@ -18,56 +18,62 @@ var gateway = new braintree.BraintreeGateway({
 });
 
 export const createProductController = async (req, res) => {
+  const { name } = req.fields;
+  const { photo } = req.files;
+
   try {
-    const { name, description, price, category, quantity, shipping } = req.fields;
-    const { photo } = req.files;
-    
-    // validation
-    switch (true) {
-      case !name:
-        return res.status(400).send({ error: "Name is Required" });
-      case !description:
-        return res.status(400).send({ error: "Description is Required" });
-      case !price:
-        return res.status(400).send({ error: "Price is Required" });
-      case !category:
-        return res.status(400).send({ error: "Category is Required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is Required" });
-      case !shipping:
-        return res.status(400).send({ error: "Shipping is Required" });
-      case !photo || photo.size > 1000000:
-        return res
-          .status(400)
-          .send({ error: "Photo is required and should be less then 1MB" });
+    await productSchema.validate(req.fields);
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: error.errors[0],
+    });
+  }
+
+  if (photo) {
+    const error = validateProductPhoto(photo);
+    if (error) {
+      return res.status(400).send({
+        success: false,
+        message: error,
+      });
+    }
+  }
+
+  try {
+    const nameExists = await productModel.exists({
+      name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive
+    });
+
+    if (nameExists) {
+      return res.status(409).send({
+        success: false,
+        message: 'Product name already exists',
+      });
     }
 
-    // additional validations
-    if (Number(price) < 0)
-      return res.status(400).send({ error: "Invalid price value" });
+    const product = new productModel({
+      ...req.fields,
+      slug: slugify(name),
+    });
 
-    const tmp_quantity = Number(quantity);
-    if (!Number.isInteger(tmp_quantity) || tmp_quantity < 0) // zero already handled above
-      return res.status(400).send({ error: "Invalid quantity value" });
+    if (photo) {
+      product.photo.data = fs.readFileSync(photo.path);
+      product.photo.contentType = photo.type;
+    }
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
-    products.photo.data = fs.readFileSync(photo.path);
-    products.photo.contentType = photo.type;
-
-    await products.save();
+    await product.save();
 
     res.status(201).send({
       success: true,
-      message: "Product created successfully",
-      products,
+      message: 'Product created successfully',
+      product,
     });
-
   } catch (error) {
-    console.log(error);
+    console.error('Error creating product:', error.message);
     res.status(500).send({
       success: false,
-      error: error.message,
-      message: "Error in creating product",
+      message: 'Failed to create product',
     });
   }
 };

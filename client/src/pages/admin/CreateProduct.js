@@ -86,7 +86,7 @@ const CreateProduct = () => {
       console.error('Error creating product:', error.message);
 
       if (error.response?.status === 409) {
-        toast.error('Product already exists');
+        toast.error('Product name already exists');
       } else {
         toast.error('Failed to create product');
       }
