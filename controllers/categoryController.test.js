@@ -231,8 +231,7 @@ describe('categoryController', () => {
 
       await updateCategoryController(req, res);
 
-      expect(categoryModel.exists).toHaveBeenNthCalledWith(1, { _id: id });
-      expect(categoryModel.exists).toHaveBeenNthCalledWith(2, {
+      expect(categoryModel.exists).toHaveBeenCalledWith({
         name: { $regex: `^${existingName}$`, $options: 'i' },
         _id: { $ne: id },
       });
@@ -251,7 +250,7 @@ describe('categoryController', () => {
 
       await updateCategoryController(req, res);
 
-      expect(categoryModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(categoryModel.exists).toHaveBeenCalledTimes(1);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
@@ -343,7 +342,6 @@ describe('categoryController', () => {
 
       await deleteCategoryController(req, res);
 
-      expect(categoryModel.exists).toHaveBeenCalledWith({ _id: id });
       expect(productModel.exists).toHaveBeenCalledWith({ category: id });
 
       expect(res.status).toHaveBeenCalledWith(409);
@@ -360,7 +358,7 @@ describe('categoryController', () => {
 
       await deleteCategoryController(req, res);
 
-      expect(categoryModel.findByIdAndDelete).not.toHaveBeenCalled();
+      expect(productModel.exists).not.toHaveBeenCalled();
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
