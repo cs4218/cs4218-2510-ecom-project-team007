@@ -147,6 +147,33 @@ export const updateProductController = async (req, res) => {
   }
 };
 
+export const deleteProductController = async (req, res) => {
+  const { pid } = req.params;
+
+  try {
+    const productExists = await productModel.exists({ _id: pid });
+    if (!productExists) {
+      return res.status(404).send({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
+    await productModel.findByIdAndDelete(pid);
+
+    res.status(200).send({
+      success: true,
+      message: 'Product deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting product:', error.message);
+    res.status(500).send({
+      success: false,
+      message: 'Failed to delete product',
+    });
+  }
+};
+
 //get all products
 export const getProductController = async (req, res) => {
   try {
@@ -238,24 +265,6 @@ export const productPhotoController = async (req, res) => {
       success: false,
       message: "Error while getting photo",
       error: error.message,
-    });
-  }
-};
-
-//delete controller
-export const deleteProductController = async (req, res) => {
-  try {
-    await productModel.findByIdAndDelete(req.params.pid).select("-photo");
-    res.status(200).send({
-      success: true,
-      message: "Product Deleted successfully",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      message: "Error while deleting product",
-      error,
     });
   }
 };

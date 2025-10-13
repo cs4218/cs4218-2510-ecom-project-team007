@@ -6,6 +6,7 @@ import { validateProductPhoto } from '../client/src/utils/photoValidation';
 import {
   createProductController,
   updateProductController,
+  deleteProductController,
   getProductController,
   getSingleProductController,
   productPhotoController,
@@ -462,6 +463,79 @@ describe('productController', () => {
       expect(res.send).toHaveBeenCalledWith({
         success: false,
         message: 'Failed to update product',
+      });
+    });
+  });
+
+  describe('deleteProductController', () => {
+    let req;
+
+    beforeEach(() => {
+      req = {
+        params: { pid },
+      };
+    });
+
+    it('deletes a product successfully', async () => {
+      productModel.exists.mockResolvedValue({ _id: pid });
+      productModel.findByIdAndDelete.mockResolvedValue();
+
+      await deleteProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({ _id: pid });
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(pid);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product deleted successfully',
+      });
+    });
+
+    it('returns 404 error when product to delete does not exist', async () => {
+      productModel.exists.mockResolvedValue(null);
+
+      await deleteProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({ _id: pid });
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Product not found',
+      });
+    });
+
+    it('returns 500 error when checking if product to delete exists fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockRejectedValue(new Error('Database query failed'));
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).not.toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to delete product',
+      });
+    });
+
+    it('returns 500 error when deleting product fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockResolvedValue({ _id: pid });
+      productModel.findByIdAndDelete.mockRejectedValue(new Error('Database delete failed'));
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(pid);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to delete product',
       });
     });
   });
