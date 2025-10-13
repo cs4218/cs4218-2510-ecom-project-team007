@@ -155,7 +155,7 @@ const HomePage = () => {
           <div className="d-flex flex-wrap">
             {products?.map((p) => (
               <div className="card m-2" key={p._id}>
-                <img {...getProductImageProps(p)} className="card-img-top" />
+                <img {...getProductImageProps(p)} className="card-img-top" onClick={() => navigate(`/product/${p.slug}`)} style={{ cursor: "pointer" }}/>
                 <div className="card-body">
                   <div className="card-name-price">
                     <h5 className="card-title">{p.name}</h5>
