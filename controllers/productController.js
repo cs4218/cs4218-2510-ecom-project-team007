@@ -338,7 +338,6 @@ export const searchProductController = async (req, res) => {
           { description: { $regex: keyword, $options: "i" } },
         ],
       })
-      .select("-photo");
     res.json(resutls);
   } catch (error) {
     console.log(error);
