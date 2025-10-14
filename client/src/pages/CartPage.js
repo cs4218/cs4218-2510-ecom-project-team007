@@ -67,6 +67,7 @@ const CartPage = () => {
   //handle payments
   const handlePayment = async () => {
     try {
+      await axios.get("/api/v1/auth/user-auth", { headers: { Authorization: auth?.token, }, });
       setLoading(true);
       const { nonce } = await instance.requestPaymentMethod();
       const { data } = await axios.post("/api/v1/product/braintree/payment", {
@@ -80,6 +81,16 @@ const CartPage = () => {
       toast.success("Payment Completed Successfully ");
     } catch (error) {
       console.log(error);
+
+      if (error.response?.status === 401) {
+        // Token expired or invalid
+        setAuth({ user: null, token: "" });
+        localStorage.removeItem("auth");
+
+        // Pass message via location.state
+        navigate("/login", { state: { from: "/cart", message: "Session expired. Please log in again." } });
+      }
+
       setLoading(false);
     }
   };
