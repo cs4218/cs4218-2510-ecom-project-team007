@@ -220,10 +220,8 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when the category name already exists', async () => {
-      const existingName = 'Books';
-
-      req.body = { name: existingName };
+    it('returns 409 error when the updated name already exists', async () => {
+      req.body = { name: updatedName };
 
       categoryModel.exists
         .mockResolvedValueOnce({ _id: id }) // Category exists
@@ -232,7 +230,7 @@ describe('categoryController', () => {
       await updateCategoryController(req, res);
 
       expect(categoryModel.exists).toHaveBeenCalledWith({
-        name: { $regex: `^${existingName}$`, $options: 'i' },
+        name: { $regex: `^${updatedName}$`, $options: 'i' },
         _id: { $ne: id },
       });
 

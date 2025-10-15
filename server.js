@@ -1,8 +1,7 @@
-import app from "./app.js";
-import colors from "colors";
-import connectDB from "./config/db.js";
+import colors from 'colors';
+import app from './app.js';
+import connectDB from './config/db.js';
 
-// database config
 connectDB();
 
 const PORT = process.env.PORT || 6060;
