@@ -56,11 +56,6 @@ const CreateCategory = () => {
 
     const normalizedUpdatedName = normalizeText(updatedName);
 
-    if (normalizedUpdatedName.toLowerCase() === selected.name.toLowerCase()) {
-      toast.error('Please enter a new name');
-      return;
-    }
-
     try {
       await axios.put(
         `/api/v1/category/update-category/${selected._id}`,
