@@ -111,7 +111,7 @@ describe("Categories Page", () => {
       mockUseCategory.mockReturnValue(mockCategories);
       const { container } = renderWithRouter(<Categories />);
       await waitFor(() => {
-        const categoryDivs = container.querySelectorAll(".col-md-6");
+        const categoryDivs = container.querySelectorAll(".mb-3");
         expect(categoryDivs).toHaveLength(3);
       });
     });
