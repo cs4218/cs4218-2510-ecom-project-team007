@@ -75,10 +75,10 @@ describe('UpdateProduct Component', () => {
     price: 999.99,
     category: mockCategories[0],
     quantity: 10,
+    shipping: true,
     photo: {
       contentType: 'image/jpeg',
     },
-    shipping: true,
   };
 
   beforeEach(() => {
@@ -288,9 +288,17 @@ describe('UpdateProduct Component', () => {
   });
 
   describe('Update Product', () => {
-    const clickUpdateButton = async () => {
+    const updateProductDetails = async () => {
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter product name')).toHaveValue(mockProduct.name);
+      });
+
+      fireEvent.change(screen.getByPlaceholderText('Enter product name'), {
+        target: { value: 'Gaming Laptop' },
+      });
+
+      fireEvent.change(screen.getByPlaceholderText('Enter price'), {
+        target: { value: '1299.99' },
       });
 
       const updateButton = screen.getByRole('button', { name: /update product/i });
@@ -306,20 +314,7 @@ describe('UpdateProduct Component', () => {
 
       render(<UpdateProduct />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Enter product name')).toHaveValue(mockProduct.name);
-      });
-
-      fireEvent.change(screen.getByPlaceholderText('Enter product name'), {
-        target: { value: 'Gaming Laptop' },
-      });
-
-      fireEvent.change(screen.getByPlaceholderText('Enter price'), {
-        target: { value: '1299.99' },
-      });
-
-      const updateButton = screen.getByRole('button', { name: /update product/i });
-      fireEvent.click(updateButton);
+      await updateProductDetails();
 
       await waitFor(() => {
         expect(axios.put).toHaveBeenCalledWith(
@@ -331,7 +326,7 @@ describe('UpdateProduct Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin/products', { state: { updated: true } });
     });
 
-    it('shows an error message when the product name already exists', async () => {
+    it('shows an error message when the new product name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       axios.put.mockRejectedValue({
@@ -341,7 +336,7 @@ describe('UpdateProduct Component', () => {
 
       render(<UpdateProduct />);
 
-      await clickUpdateButton();
+      await updateProductDetails();
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Product name already exists');
@@ -360,7 +355,7 @@ describe('UpdateProduct Component', () => {
 
       render(<UpdateProduct />);
 
-      await clickUpdateButton();
+      await updateProductDetails();
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Failed to update product');

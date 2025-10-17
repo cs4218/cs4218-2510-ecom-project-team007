@@ -249,7 +249,7 @@ describe('CreateProduct Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin/products', { state: { created: true } });
     });
 
-    it('shows an error message when creating a duplicate product', async () => {
+    it('shows an error message when the product name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       axios.post.mockRejectedValue({
