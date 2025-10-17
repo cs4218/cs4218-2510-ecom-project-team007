@@ -93,7 +93,7 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when the category already exists', async () => {
+    it('returns 409 error when the category name already exists', async () => {
       categoryModel.exists.mockResolvedValue({ _id: id });
 
       await createCategoryController(req, res);
@@ -220,7 +220,7 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when the updated name already exists', async () => {
+    it('returns 409 error when the new category name already exists', async () => {
       req.body = { name: updatedName };
 
       categoryModel.exists

@@ -390,7 +390,7 @@ describe('productController', () => {
       });
     });
 
-    it('returns 409 error when the product name already exists', async () => {
+    it('returns 409 error when the new product name already exists', async () => {
       const mockProduct = createMockProduct();
 
       productModel.findById.mockResolvedValue(mockProduct);
