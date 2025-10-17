@@ -160,7 +160,7 @@ describe('CreateCategory Component', () => {
       expect(await screen.findByRole('cell', { name })).toBeInTheDocument();
     });
 
-    it('shows an error message when creating a duplicate category', async () => {
+    it('shows an error message when the category name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       axios.get.mockResolvedValue({ data: { category: [mockCategory] } });
@@ -296,7 +296,7 @@ describe('CreateCategory Component', () => {
       expect(await screen.findByRole('cell', { name: updatedName })).toBeInTheDocument();
     });
 
-    it('shows an error message when the updated name already exists', async () => {
+    it('shows an error message when the new category name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       axios.get.mockResolvedValue({
