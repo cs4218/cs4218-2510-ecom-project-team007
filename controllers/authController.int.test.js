@@ -8,10 +8,7 @@ import { hashPassword } from "../helpers/authHelper.js";
 dotenv.config();
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(process.env.MONGO_URL);
 });
 
 afterAll(async () => {
