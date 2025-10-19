@@ -8,6 +8,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
 import { getProductImageProps } from "../utils/productImage";
+import { addIdxString, removeIdxString } from "../utils/cartUtils";
 
 const CartPage = () => {
   const [auth, setAuth] = useAuth();
@@ -27,7 +28,7 @@ const CartPage = () => {
         }
         total += item.price;
       });
-      
+
       return total.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
@@ -39,6 +40,7 @@ const CartPage = () => {
 
   //delete item
   const removeCartItem = (pid) => {
+    pid = removeIdxString(pid)
     try {
       let myCart = [...cart];
       let index = myCart.findIndex((item) => item._id === pid);
@@ -105,9 +107,8 @@ const CartPage = () => {
                 : `Hello  ${auth?.token && auth?.user?.name}`}
               <p className="text-center">
                 {cart?.length
-                  ? `You Have ${cart.length} items in your cart ${
-                      auth?.token ? "" : "please login to checkout !"
-                    }`
+                  ? `You Have ${cart.length} items in your cart ${auth?.token ? "" : "please login to checkout !"
+                  }`
                   : " Your Cart Is Empty"}
               </p>
             </h1>
@@ -116,14 +117,15 @@ const CartPage = () => {
         <div className="container ">
           <div className="row ">
             <div className="col-md-7  p-0 m-0">
-              {cart?.map((p) => (
-                <div className="row card flex-row" key={p._id}>
+              {cart?.map((p, idx) => (
+                <div className="row card flex-row" key={addIdxString(idx, p._id)}>
                   <div className="col-md-4">
                     <img
                       {...getProductImageProps(p)}
                       className="card-img-top"
                       width="100%"
                       height={"130px"}
+                      alt="Product"
                     />
                   </div>
                   <div className="col-md-4">
