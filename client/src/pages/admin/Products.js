@@ -51,21 +51,27 @@ const Products = () => {
         <div className="col-md-9 ">
           <h1 className="text-center">All Products List</h1>
 
-          <div className="d-flex">
+          <div className="row">
             {products?.map((product) => (
-              <Link
-                key={product._id}
-                to={`/dashboard/admin/product/${product.slug}`}
-                className="product-link"
-              >
-                <div className="card m-2" style={{ width: '18rem' }}>
-                  <img {...getProductImageProps(product)} className="card-img-top" />
-                  <div className="card-body">
-                    <h5 className="card-title">{product.name}</h5>
-                    <p className="card-text">{product.description}</p>
+              <div key={product._id} className="col-md-4 mb-4">
+                <Link
+                  to={`/dashboard/admin/product/${product.slug}`}
+                  className="product-link text-decoration-none"
+                >
+                  <div className="card h-100">
+                    <img
+                      {...getProductImageProps(product)}
+                      alt="Product"
+                      className="card-img-top"
+                      style={{ maxHeight: '240px', objectFit: 'contain' }}
+                    />
+                    <div className="card-body">
+                      <h5 className="card-title">{product.name}</h5>
+                      <p className="card-text">{product.description}</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
           </div>
         </div>
