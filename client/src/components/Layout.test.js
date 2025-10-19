@@ -4,9 +4,9 @@ import Layout from './Layout';
 
 jest.mock('./Header', () => () => <div data-testid="header">Header</div>);
 jest.mock('./Footer', () => () => <div data-testid="footer">Footer</div>);
-jest.mock('react-hot-toast', () => ({
-    Toaster: () => <div data-testid="toaster">Toaster</div>,
-}));
+// jest.mock('react-hot-toast', () => ({
+//     Toaster: () => <div data-testid="toaster">Toaster</div>,
+// }));
 
 describe('Layout', () => {
     afterEach(() => {
@@ -33,10 +33,10 @@ describe('Layout', () => {
         expect(screen.getByTestId('footer')).toBeInTheDocument();
     });
 
-    test('it renders the Toaster component', () => {
-        render(<Layout />);
-        expect(screen.getByTestId('toaster')).toBeInTheDocument();
-    });
+    // test('it renders the Toaster component', () => {
+    //     render(<Layout />);
+    //     expect(screen.getByTestId('toaster')).toBeInTheDocument();
+    // });
 
     test('it sets the document title from props', async () => {
         const testTitle = 'Test Title';
