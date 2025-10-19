@@ -61,7 +61,6 @@ const Products = () => {
                   <div className="card h-100">
                     <img
                       {...getProductImageProps(product)}
-                      alt="Product"
                       className="card-img-top"
                       style={{ maxHeight: '240px', objectFit: 'contain' }}
                     />
