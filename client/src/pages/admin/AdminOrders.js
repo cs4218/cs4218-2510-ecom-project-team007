@@ -107,9 +107,10 @@ const AdminOrders = () => {
                       <div className="col-md-4">
                         <img
                           {...getProductImageProps(product)}
+                          alt="Product"
                           className="card-img-top"
                           width="100px"
-                          height="100px"
+                          style={{ maxHeight: '150px', objectFit: 'contain' }}
                         />
                       </div>
 
