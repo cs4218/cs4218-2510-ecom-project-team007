@@ -3,6 +3,9 @@ import { test, expect } from '@playwright/test';
 test('User resets password, logs in, shops, and completes checkout', async ({ page }) => {
   // Go to homepage and navigate to Forgot Password
   await page.goto('http://localhost:3000/');
+  await page.getByRole('button', { name: 'test' }).click();
+  await page.getByRole('link', { name: 'Logout' }).click();
+
   await page.getByRole('link', { name: 'Login' }).click();
   await page.getByRole('button', { name: 'Forgot Password' }).click();
 
@@ -22,10 +25,11 @@ test('User resets password, logs in, shops, and completes checkout', async ({ pa
 
   // Now enter correct credentials — should redirect to login page
   await page.getByRole('textbox', { name: 'Enter Your Registered Email' }).fill('test@test.com');
-  await page.getByRole('textbox', { name: 'Enter Security Answer' }).fill('na');
+  await page.getByRole('textbox', { name: 'Enter Security Answer' }).fill('football');
   await page.getByRole('textbox', { name: 'Enter New Password' }).fill('test1');
 
   await page.getByRole('button', { name: 'RESET PASSWORD' }).click();
+  await page.waitForTimeout(1000);
 
   // Confirm login form appears
   await expect(page.getByRole('main')).toMatchAriaSnapshot(`
@@ -40,6 +44,7 @@ test('User resets password, logs in, shops, and completes checkout', async ({ pa
   await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test@test.com');
   await page.getByRole('textbox', { name: 'Enter Your Password' }).fill('test1');
   await page.getByRole('button', { name: 'LOGIN' }).click();
+  await page.waitForTimeout(1000);
 
   // Add items to cart
   await page.locator('.card-name-price > button:nth-child(2)').first().click();
