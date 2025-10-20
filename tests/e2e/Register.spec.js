@@ -33,8 +33,6 @@ test('User registration, login, view products, dashboard, and logout flow UI tes
   await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test2@gmail.com');
   await page.getByRole('button', { name: 'REGISTER' }).click();
 
-  await page.waitForTimeout(2000);
-
   // Expect navigation to login page and verify ARIA structure
   await expect(page.getByRole('main')).toMatchAriaSnapshot(`
     - heading "LOGIN FORM" [level=4]

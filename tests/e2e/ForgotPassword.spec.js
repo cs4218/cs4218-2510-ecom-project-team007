@@ -1,12 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test('User resets password, logs in, shops, and completes checkout', async ({ page }) => {
-  await page.goto('http://localhost:3000/');
-  //logout
-  await page.getByRole('button', { name: 'test' }).click();
-  await page.getByRole('link', { name: 'Logout' }).click();
   // Go to homepage and navigate to Forgot Password
-
+  await page.goto('http://localhost:3000/');
   await page.getByRole('link', { name: 'Login' }).click();
   await page.getByRole('button', { name: 'Forgot Password' }).click();
 
