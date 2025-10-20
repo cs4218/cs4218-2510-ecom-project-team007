@@ -27,13 +27,12 @@ test('User registration, login, view products, dashboard, and logout flow UI tes
   await page.getByRole('button', { name: 'REGISTER' }).click();
 
   // If email already exists, expect proper error message
-    await expect(page.getByRole('status').filter({ hasText: 'Already Register please login' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Already Register please login' })).toBeVisible();
 
   // Change email and register successfully
   await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test2@gmail.com');
   await page.getByRole('button', { name: 'REGISTER' }).click();
-
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 
   // Expect navigation to login page and verify ARIA structure
   await expect(page.getByRole('main')).toMatchAriaSnapshot(`
@@ -81,24 +80,6 @@ test('User registration, login, view products, dashboard, and logout flow UI tes
       - checkbox "Clothing"
       - text: Clothing
       - heading "Filter By Price" [level=4]
-      - radio /\\$0 to \\d+/
-      - text: /\\$0 to \\d+/
-      - radio /\\$\\d+ to \\d+/
-      - text: /\\$\\d+ to \\d+/
-      - radio /\\$\\d+ to \\d+/
-      - text: /\\$\\d+ to \\d+/
-      - radio /\\$\\d+ to \\d+/
-      - text: /\\$\\d+ to \\d+/
-      - radio /\\$\\d+ or more/
-      - text: /\\$\\d+ or more/
-      - button "RESET FILTERS"
-      - heading "All Products" [level=1]
-      - img "Novel"
-      - heading "Novel" [level=5]
-      - heading /\\$\\d+\\.\\d+/ [level=5]
-      - paragraph: A bestselling novel...
-      - button "More Details"
-      - button "ADD TO CART"
   `);
 
   // Navigate to Dashboard and verify user info

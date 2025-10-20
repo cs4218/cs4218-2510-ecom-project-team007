@@ -10,7 +10,7 @@ test('Admin Dashboard - Login, Product Management, and Logout', async ({ page })
   await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test@admin.com');
   await page.getByRole('textbox', { name: 'Enter Your Password' }).fill('fake');
   await page.getByRole('button', { name: 'LOGIN' }).click();
-  await expect(page.locator('div').filter({ hasText: /^Invalid Password$/ }).nth(2)).toBeVisible();
+  await expect(page.getByText('Invalid Password')).toBeVisible();
   
   // Login with correct password
   await page.getByRole('textbox', { name: 'Enter Your Password' }).click();
@@ -27,82 +27,60 @@ test('Admin Dashboard - Login, Product Management, and Logout', async ({ page })
   await page.getByRole('link', { name: 'Create Category' }).click();
   await page.getByRole('textbox', { name: 'Enter new category' }).fill('test');
   await page.getByRole('button', { name: 'Submit' }).click();
-  await expect(page.locator('div').filter({ hasText: /^test created successfully$/ }).nth(2)).toBeVisible();
+  await expect(page.getByText('test created successfully')).toBeVisible();
+
   
   // create a product
   await page.getByRole('link', { name: 'Create Product' }).click();
 
   const categoryDropdown = page.locator('.ant-select-selector').first();
-  await categoryDropdown.waitFor({ state: 'visible', timeout: 10000 });
+  await categoryDropdown.waitFor({ state: 'visible', timeout: 1000 });
   await categoryDropdown.click();
   await page.waitForTimeout(500);
   await page.locator('.ant-select-item-option-content:has-text("test")').click();
 
-  await page.getByRole('textbox', { name: 'write a name' }).fill('test');
-  await page.getByRole('textbox', { name: 'write a description' }).fill('test');
-  await page.getByPlaceholder('write a Price').fill('2');
-  await page.getByPlaceholder('write a quantity').fill('2');
+  await page.getByRole('textbox', { name: 'Enter product name' }).fill('test');
+  await page.getByRole('textbox', { name: 'Enter product description' }).fill('test');
+  await page.getByPlaceholder('Enter price').fill('2');
+  await page.getByPlaceholder('Enter quantity').fill('2');
   await page.locator('.mb-3 > .ant-select').click();
   await page.getByText('No').click();
   await page.getByRole('button', { name: 'CREATE PRODUCT' }).click();
-  await expect(page.locator('div').filter({ hasText: /^Product Created Successfully$/ }).nth(1)).toBeVisible();
+  await expect(page.getByText('Product Created Successfully')).toBeVisible();
   
   // Verify product appears in product list
-  await expect(page.getByRole('link', { name: 'test test test' })).toBeVisible();
+  const productTitle = page.locator('h5.card-title', { hasText: 'test' });
+  await expect(productTitle).toBeVisible();
   
   // Verify product appears on home page
   await page.getByRole('link', { name: '🛒 Virtual Vault' }).click();
-  await expect(page.locator('div').filter({ hasText: /^test\$2\.00test\.\.\.More DetailsADD TO CART$/ }).first()).toBeVisible();
+  // Verify product card exists with name and price
+  const productCard = page.locator('.card', {
+    hasText: 'test'
+  }).filter({
+    hasText: '$2.00'
+  });
+
+  await expect(productCard.first()).toBeVisible();
   
   // can delete products
   await page.getByRole('button', { name: 'Test' }).click();
   await page.getByRole('link', { name: 'Dashboard' }).click();
   await page.getByRole('link', { name: 'Products' }).click();
-  await page.getByRole('link', { name: 'test test test' }).click();
+  await page.getByRole('link', { name: 'test' }).click();
   
   page.once('dialog', dialog => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.dismiss().catch(() => {});
   });
+
   await page.getByRole('button', { name: 'DELETE PRODUCT' }).click();
+  await page.locator('.ant-modal-confirm-btns button.ant-btn-dangerous', { hasText: 'Delete' }).click();
+  await page.waitForTimeout(3000);
   
   await page.getByRole('link', { name: '🛒 Virtual Vault' }).click();
-  await expect(page.getByRole('main')).toMatchAriaSnapshot(`
-    - img "test"
-    - heading "test" [level=5]
-    - heading /\\$\\d+\\.\\d+/ [level=5]
-    - paragraph: test...
-    - button "More Details"
-    - button "ADD TO CART"
-    - img "NUS T-shirt"
-    - heading "NUS T-shirt" [level=5]
-    - heading /\\$\\d+\\.\\d+/ [level=5]
-    - paragraph: Plain NUS T-shirt for sale...
-    - button "More Details"
-    - button "ADD TO CART"
-    - img "Novel"
-    - heading "Novel" [level=5]
-    - heading /\\$\\d+\\.\\d+/ [level=5]
-    - paragraph: A bestselling novel...
-    - button "More Details"
-    - button "ADD TO CART"
-    - img "The Law of Contract in Singapore"
-    - heading "The Law of Contract in Singapore" [level=5]
-    - heading /\\$\\d+\\.\\d+/ [level=5]
-    - paragraph: A bestselling book in Singapore...
-    - button "More Details"
-    - button "ADD TO CART"
-    - img "Smartphone"
-    - heading "Smartphone" [level=5]
-    - heading /\\$\\d+\\.\\d+/ [level=5]
-    - paragraph: A high-end smartphone...
-    - button "More Details"
-    - button "ADD TO CART"
-    - img "Laptop"
-    - heading "Laptop" [level=5]
-    - heading /\\$\\d+,\\d+\\.\\d+/ [level=5]
-    - paragraph: A powerful laptop...
-    - button "More Details"
-    - button "ADD TO CART"
-    `);
+  const testProducts = page.locator('.card:has-text("test")');
+
+  // Assert that there are zero such products
+  await expect(testProducts).toHaveCount(0);
 });
