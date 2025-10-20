@@ -7,6 +7,8 @@ import DropIn from "braintree-web-drop-in-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
+import { getProductImageProps } from "../utils/productImage";
+import { addIdxString, removeIdxString } from "../utils/cartUtils";
 
 const CartPage = () => {
   const [auth, setAuth] = useAuth();
@@ -26,7 +28,7 @@ const CartPage = () => {
         }
         total += item.price;
       });
-      
+
       return total.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
@@ -38,6 +40,7 @@ const CartPage = () => {
 
   //delete item
   const removeCartItem = (pid) => {
+    pid = removeIdxString(pid)
     try {
       let myCart = [...cart];
       let index = myCart.findIndex((item) => item._id === pid);
@@ -66,6 +69,7 @@ const CartPage = () => {
   //handle payments
   const handlePayment = async () => {
     try {
+      await axios.get("/api/v1/auth/user-auth", { headers: { Authorization: auth?.token, }, });
       setLoading(true);
       const { nonce } = await instance.requestPaymentMethod();
       const { data } = await axios.post("/api/v1/product/braintree/payment", {
@@ -79,6 +83,16 @@ const CartPage = () => {
       toast.success("Payment Completed Successfully ");
     } catch (error) {
       console.log(error);
+
+      if (error.response?.status === 401) {
+        // Token expired or invalid
+        setAuth({ user: null, token: "" });
+        localStorage.removeItem("auth");
+
+        // Pass message via location.state
+        navigate("/login", { state: { from: "/cart", message: "Session expired. Please log in again." } });
+      }
+
       setLoading(false);
     }
   };
@@ -93,9 +107,8 @@ const CartPage = () => {
                 : `Hello  ${auth?.token && auth?.user?.name}`}
               <p className="text-center">
                 {cart?.length
-                  ? `You Have ${cart.length} items in your cart ${
-                      auth?.token ? "" : "please login to checkout !"
-                    }`
+                  ? `You Have ${cart.length} items in your cart ${auth?.token ? "" : "please login to checkout !"
+                  }`
                   : " Your Cart Is Empty"}
               </p>
             </h1>
@@ -104,13 +117,12 @@ const CartPage = () => {
         <div className="container ">
           <div className="row ">
             <div className="col-md-7  p-0 m-0">
-              {cart?.map((p) => (
-                <div className="row card flex-row" key={p._id}>
+              {cart?.map((p, idx) => (
+                <div className="row card flex-row" key={addIdxString(idx, p._id)}>
                   <div className="col-md-4">
                     <img
-                      src={`/api/v1/product/product-photo/${p._id}`}
+                      {...getProductImageProps(p)}
                       className="card-img-top"
-                      alt={p.name}
                       width="100%"
                       height={"130px"}
                     />

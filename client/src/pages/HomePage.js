@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
+import { getProductImageProps } from "../utils/productImage";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -154,11 +155,7 @@ const HomePage = () => {
           <div className="d-flex flex-wrap">
             {products?.map((p) => (
               <div className="card m-2" key={p._id}>
-                <img
-                  src={`/api/v1/product/product-photo/${p._id}`}
-                  className="card-img-top"
-                  alt={p.name}
-                />
+                <img {...getProductImageProps(p)} className="card-img-top" onClick={() => navigate(`/product/${p.slug}`)} style={{ cursor: "pointer" }}/>
                 <div className="card-body">
                   <div className="card-name-price">
                     <h5 className="card-title">{p.name}</h5>
@@ -206,14 +203,7 @@ const HomePage = () => {
                   setPage(page + 1);
                 }}
               >
-                {loading ? (
-                  "Loading ..."
-                ) : (
-                  <>
-                    {" "}
-                    Loadmore <AiOutlineReload />
-                  </>
-                )}
+                {loading ? "Loading ..." : "Load more"}
               </button>
             )}
           </div>

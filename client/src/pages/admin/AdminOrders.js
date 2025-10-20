@@ -7,6 +7,7 @@ import AdminMenu from '../../components/AdminMenu';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/auth';
 import { groupProductsById } from '../../utils/orderUtils';
+import { getProductImageProps } from '../../utils/productImage';
 
 const statuses = [
   'Pending',
@@ -20,12 +21,6 @@ const AdminOrders = () => {
   const [auth] = useAuth();
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    if (auth?.token) {
-      void getAllOrders();
-    }
-  }, [auth?.token]);
-
   const getAllOrders = async () => {
     try {
       const { data } = await axios.get('/api/v1/auth/all-orders');
@@ -35,6 +30,12 @@ const AdminOrders = () => {
       toast.error('Failed to load orders');
     }
   };
+
+  useEffect(() => {
+    if (auth?.token) {
+      void getAllOrders();
+    }
+  }, [auth?.token]);
 
   // Update order status
   const handleChange = async (orderId, newStatus) => {
@@ -105,11 +106,10 @@ const AdminOrders = () => {
                     <div key={`${order._id}-${product._id}`} className="row mb-2 p-3 card flex-row">
                       <div className="col-md-4">
                         <img
-                          src={`/api/v1/product/product-photo/${product._id}`}
+                          {...getProductImageProps(product)}
                           className="card-img-top"
-                          alt={product.name}
                           width="100px"
-                          height="100px"
+                          style={{ maxHeight: '150px', objectFit: 'contain' }}
                         />
                       </div>
 

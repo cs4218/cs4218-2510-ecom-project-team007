@@ -6,11 +6,11 @@ const Categories = () => {
   const categories = useCategory();
   return (
     <Layout title={"All Categories"}>
-      <div className="container">
-        <div className="row">
+      <div className="container d-flex justify-content-center pt-5">
+        <div className="w-100" style={{ maxWidth: "400px" }}>
           {categories.map((c) => (
-            <div className="col-md-6 mt-5 mb-3 gx-3 gy-3" key={c._id}>
-              <Link to={`/category/${c.slug}`} className="btn btn-primary">
+            <div className="mb-3" key={c._id}>
+              <Link to={`/category/${c.slug}`} className="btn btn-primary w-100">
                 {c.name}
               </Link>
             </div>

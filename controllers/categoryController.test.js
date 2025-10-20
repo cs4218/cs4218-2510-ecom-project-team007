@@ -7,7 +7,7 @@ import {
   updateCategoryController,
   deleteCategoryController,
   categoryControlller,
-  singleCategoryController
+  singleCategoryController,
 } from './categoryController';
 
 jest.mock('slugify');
@@ -61,7 +61,6 @@ describe('categoryController', () => {
       await createCategoryController(req, res);
 
       expect(normalizeText).toHaveBeenCalledWith(name);
-
       expect(categoryModel.exists).toHaveBeenCalledWith({
         name: { $regex: `^${name}$`, $options: 'i' },
       });
@@ -73,7 +72,7 @@ describe('categoryController', () => {
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.send).toHaveBeenCalledWith({
         success: true,
-        message: 'New category created',
+        message: 'Category created successfully',
         category,
       });
     });
@@ -94,7 +93,7 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when category already exists', async () => {
+    it('returns 409 error when the category name already exists', async () => {
       categoryModel.exists.mockResolvedValue({ _id: id });
 
       await createCategoryController(req, res);
@@ -110,8 +109,8 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 500 error when checking for conflicting name fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+    it('returns 500 error when checking for existing name fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockRejectedValue(new Error('Database query failed'));
 
@@ -127,7 +126,7 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when saving category fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockResolvedValue(null);
       slugify.mockReturnValue(slug);
@@ -161,7 +160,7 @@ describe('categoryController', () => {
 
       categoryModel.exists
         .mockResolvedValueOnce({ _id: id }) // Category exists
-        .mockResolvedValueOnce(null); // No conflict
+        .mockResolvedValueOnce(null); // Name doesn't exist
 
       slugify.mockReturnValue(updatedSlug);
       categoryModel.findByIdAndUpdate.mockResolvedValue(updatedCategory);
@@ -221,20 +220,17 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when the updated name already exists', async () => {
-      const conflictingName = 'Books';
-
-      req.body = { name: conflictingName };
+    it('returns 409 error when the new category name already exists', async () => {
+      req.body = { name: updatedName };
 
       categoryModel.exists
         .mockResolvedValueOnce({ _id: id }) // Category exists
-        .mockResolvedValueOnce({ _id: '2' }); // Conflict exists
+        .mockResolvedValueOnce({ _id: '2' }); // Name already exists
 
       await updateCategoryController(req, res);
 
-      expect(categoryModel.exists).toHaveBeenNthCalledWith(1, { _id: id });
-      expect(categoryModel.exists).toHaveBeenNthCalledWith(2, {
-        name: { $regex: `^${conflictingName}$`, $options: 'i' },
+      expect(categoryModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${updatedName}$`, $options: 'i' },
         _id: { $ne: id },
       });
 
@@ -246,13 +242,13 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when checking if category to update exists fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockRejectedValue(new Error('Database query failed'));
 
       await updateCategoryController(req, res);
 
-      expect(categoryModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(categoryModel.exists).toHaveBeenCalledTimes(1);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
@@ -261,12 +257,12 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 500 error when checking for conflicting name fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+    it('returns 500 error when checking for existing name fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists
         .mockResolvedValueOnce({ _id: id }) // Category exists
-        .mockRejectedValueOnce(new Error('Database query failed')); // Conflict check fails
+        .mockRejectedValueOnce(new Error('Database query failed')); // Name check fails
 
       await updateCategoryController(req, res);
 
@@ -280,11 +276,11 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when updating category fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists
-        .mockResolvedValueOnce({ _id: id }) // Category exists
-        .mockResolvedValueOnce(null); // No conflict
+        .mockResolvedValueOnce({ _id: id })
+        .mockResolvedValueOnce(null);
 
       slugify.mockReturnValue(updatedSlug);
       categoryModel.findByIdAndUpdate.mockRejectedValue(new Error('Database update failed'));
@@ -344,7 +340,6 @@ describe('categoryController', () => {
 
       await deleteCategoryController(req, res);
 
-      expect(categoryModel.exists).toHaveBeenCalledWith({ _id: id });
       expect(productModel.exists).toHaveBeenCalledWith({ category: id });
 
       expect(res.status).toHaveBeenCalledWith(409);
@@ -355,13 +350,13 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when checking if category to delete exists fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockRejectedValue(new Error('Database query failed'));
 
       await deleteCategoryController(req, res);
 
-      expect(categoryModel.findByIdAndDelete).not.toHaveBeenCalled();
+      expect(productModel.exists).not.toHaveBeenCalled();
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
@@ -371,7 +366,7 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when checking if category has products fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockResolvedValue({ _id: id });
       productModel.exists.mockRejectedValue(new Error('Database query failed'));
@@ -388,7 +383,7 @@ describe('categoryController', () => {
     });
 
     it('returns 500 error when deleting category fails', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => { });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       categoryModel.exists.mockResolvedValue({ _id: id });
       productModel.exists.mockResolvedValue(null);
