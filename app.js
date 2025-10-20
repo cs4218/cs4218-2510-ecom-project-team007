@@ -6,7 +6,12 @@ import authRoutes from './routes/authRoute.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 
-dotenv.config();
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: '.env.test' });
+  console.log('Loaded test environment variables from .env.test');
+} else {
+  dotenv.config();
+}
 
 const app = express();
 
