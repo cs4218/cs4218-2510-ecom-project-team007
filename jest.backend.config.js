@@ -12,7 +12,7 @@ export default {
     "<rootDir>/helpers/*.test.js",
     "<rootDir>/middlewares/*.test.js",
     "<rootDir>/models/*.test.js",
-    "<rootDir>/test/**/*.integration.test.js",
+    "<rootDir>/tests/integration/**/*.test.js",
   ],
 
   // jest code coverage
