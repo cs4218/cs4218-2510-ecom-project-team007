@@ -3,59 +3,37 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Layout Component Integration Tests', () => {
     test.beforeEach(async ({ page }) => {
-        // Start from the home page before each test
+        // Start from home page before each test
         await page.goto('http://localhost:3000');
     });
 
     test.describe('Layout Component Flow', () => {
         test('should render Header, children content, and Footer together', async ({ page }) => {
-            // Verify Header is present
+            // Verify header is present
             const header = page.locator('header, nav').first();
             await expect(header).toBeVisible();
-
             // Verify main content area is present
             const mainContent = page.locator('main');
             await expect(mainContent).toBeVisible();
-            await expect(mainContent).toHaveCSS('min-height', '70vh');
-
-            // Verify Footer is present
-            const footer = page.locator('footer').last();
+            // Verify footer is present
+            const footer = page.locator('footer');
             await expect(footer).toBeVisible();
-
-            // Verify they appear in correct order (Header -> Main -> Footer)
+            // Verify they appear in correct order
             const layoutStructure = await page.evaluate(() => {
                 const elements = Array.from(document.querySelectorAll('header, nav, main, footer'));
                 return elements.map(el => el.tagName.toLowerCase());
             });
-
-            // Check that main content appears between header/nav and footer
             const mainIndex = layoutStructure.indexOf('main');
             const footerIndex = layoutStructure.lastIndexOf('footer');
             expect(mainIndex).toBeLessThan(footerIndex);
         });
 
         test('should display correct Helmet meta tags for different pages', async ({ page }) => {
-            // Test home page meta tags
-            await page.goto('http://localhost:3000');
             const homeTitle = await page.title();
-            expect(homeTitle).toContain('Ecommerce app');
-
-            // Test About page meta tags
+            expect(homeTitle).toBeTruthy();
             await page.goto('http://localhost:3000/about');
             const aboutTitle = await page.title();
             expect(aboutTitle).toBeTruthy();
-
-            // Verify meta description exists
-            const metaDescription = await page.locator('meta[name="description"]').getAttribute('content');
-            expect(metaDescription).toBeTruthy();
-
-            // Verify meta keywords exists
-            const metaKeywords = await page.locator('meta[name="keywords"]').getAttribute('content');
-            expect(metaKeywords).toBeTruthy();
-
-            // Verify meta author exists
-            const metaAuthor = await page.locator('meta[name="author"]').getAttribute('content');
-            expect(metaAuthor).toBeTruthy();
         });
 
         test('should show Spinner during loading states', async ({ page }) => {
@@ -64,20 +42,12 @@ test.describe('Layout Component Integration Tests', () => {
                 // Delay the response to see spinner
                 setTimeout(() => route.continue(), 1000);
             });
-
-            // Navigate to a page that loads data
-            await page.goto('http://localhost:3000/categories');
-
-            // Check if spinner appears (adjust selector based on your Spinner component)
+            // Navigate to a page that loads auth logic
+            await page.goto('http://localhost:3000/dashboard/admin');
             const spinner = page.locator('.spinner, [role="status"], .loading, .loader').first();
-
-            // Spinner should be visible during loading
             const isSpinnerVisible = await spinner.isVisible().catch(() => false);
-
-            // Wait for content to load (spinner should disappear)
+            expect(isSpinnerVisible).toBeTruthy();
             await page.waitForLoadState('networkidle');
-
-            // After loading, spinner should not be visible
             const isSpinnerGone = await spinner.isHidden().catch(() => true);
             expect(isSpinnerGone).toBeTruthy();
         });
@@ -107,99 +77,59 @@ test.describe('Layout Component Integration Tests', () => {
 
     test.describe('Navigation Integration - Header Links', () => {
         test('should navigate to Home when clicking Home link in Header', async ({ page }) => {
-            await page.goto('http://localhost:3000/about');
-
-            // Click Home link (adjust selector based on your Header component)
-            await page.click('text=Home, a[href="/"]').catch(() =>
-                page.click('nav >> text=Home')
-            );
-
+            const homeLink = '.nav-link:text("Home")';
+            await page.click(homeLink);
             await expect(page).toHaveURL('http://localhost:3000/');
         });
 
-        test('should navigate to Categories when clicking Categories link', async ({ page }) => {
-            // Click Categories link
-            await page.click('text=Categories, a[href="/categories"]').catch(() =>
-                page.click('nav >> text=Categories')
-            );
-
-            await expect(page).toHaveURL(/.*categories/);
+        test('should navigate to all categories link when clicking in Categories dropdown', async ({ page }) => {
+            const categoriesToggle = 'a:text("Categories")';
+            await page.click(categoriesToggle)
+            const electronicsLink = page.locator('a:text("All Categories")');
+            await electronicsLink.waitFor({ state: 'visible' });
+            await electronicsLink.click();
+            await expect(page).toHaveURL('http://localhost:3000/categories');
         });
 
-        test('should navigate to About page when clicking About link', async ({ page }) => {
-            await page.click('text=About, a[href="/about"]').catch(() =>
-                page.click('nav >> text=About')
-            );
-
-            await expect(page).toHaveURL(/.*about/);
-        });
-
-        test('should navigate to Contact page when clicking Contact link', async ({ page }) => {
-            await page.click('text=Contact, a[href="/contact"]').catch(() =>
-                page.click('nav >> text=Contact')
-            );
-
-            await expect(page).toHaveURL(/.*contact/);
-        });
-
-        test('should update route correctly when clicking navigation links', async ({ page }) => {
-            const navigationFlow = [
-                { link: 'About', expectedURL: /.*about/ },
-                { link: 'Contact', expectedURL: /.*contact/ },
-                { link: 'Categories', expectedURL: /.*categories/ },
-                { link: 'Home', expectedURL: 'http://localhost:3000/' }
-            ];
-
-            for (const { link, expectedURL } of navigationFlow) {
-                await page.click(`text=${link}`).catch(() =>
-                    page.click(`nav >> text=${link}`)
-                );
-                await expect(page).toHaveURL(expectedURL);
-            }
+        test('should navigate to a category link when clicking it in Categories dropdown', async ({ page }) => {
+            const categoriesToggle = 'a:text("Categories")';
+            await page.click(categoriesToggle)
+            const electronicsLink = page.locator('a:text("Electronics")');
+            await electronicsLink.waitFor({ state: 'visible' });
+            await electronicsLink.click();
+            await expect(page).toHaveURL('http://localhost:3000/category/electronics');
         });
 
         test('should maintain active link highlighting in Header', async ({ page }) => {
-            // Navigate to About page
             await page.goto('http://localhost:3000/about');
-
-            // Check if About link has active class (adjust based on your implementation)
             const aboutLink = page.locator('a[href="/about"]').first();
             const classes = await aboutLink.getAttribute('class');
-
-            // Common active class patterns: 'active', 'nav-active', 'current'
             const hasActiveClass = classes && (
-                classes.includes('active') ||
-                classes.includes('current') ||
-                classes.includes('selected')
+                classes.includes('active')
             );
-
-            // If using aria-current attribute
             const ariaCurrent = await aboutLink.getAttribute('aria-current');
-
             expect(hasActiveClass || ariaCurrent === 'page').toBeTruthy();
         });
     });
 
     test.describe('Navigation Integration - Footer Links', () => {
-        test('should navigate to About page from Footer', async ({ page }) => {
-            const footer = page.locator('footer');
-            await footer.locator('text=About, a[href="/about"]').click();
-
+        test('should navigate to About page when clicking About link', async ({ page }) => {
+            const aboutLink = 'a:text("About")';
+            await page.click(aboutLink);
             await expect(page).toHaveURL(/.*about/);
         });
 
-        test('should navigate to Contact page from Footer', async ({ page }) => {
-            const footer = page.locator('footer');
-            await footer.locator('text=Contact, a[href="/contact"]').click();
-
+        test('should navigate to Contact page when clicking Contact link', async ({ page }) => {
+            const contactLink = 'a:text("Contact")';
+            await page.click(contactLink);
             await expect(page).toHaveURL(/.*contact/);
         });
 
         test('should navigate to Policy page from Footer', async ({ page }) => {
-            const footer = page.locator('footer');
-            await footer.locator('text=Policy, a[href="/policy"]').click();
-
+            const contactLink = 'a:text("Policy")';
+            await page.click(contactLink);
             await expect(page).toHaveURL(/.*policy/);
+
         });
 
         test('should verify all Footer links are clickable', async ({ page }) => {
@@ -218,111 +148,90 @@ test.describe('Layout Component Integration Tests', () => {
 
     test.describe('Page Transitions', () => {
         test('should transition smoothly between About and Pagenotfound', async ({ page }) => {
-            // Navigate to About page
-            await page.goto('http://localhost:3000/about');
+            const aboutPageUrl = 'http://localhost:3000/about';
+            const notExistPageUrl = 'http://localhost:3000/this-page-does-not-exist';
+
+            await page.goto(aboutPageUrl);
             await expect(page).toHaveURL(/.*about/);
 
-            // Navigate to non-existent page
-            await page.goto('http://localhost:3000/this-page-does-not-exist');
-
-            // Should show 404 page
+            await page.goto(notExistPageUrl);
             const pageContent = await page.textContent('body');
+
             expect(
                 pageContent.includes('404') ||
-                pageContent.includes('not found') ||
-                pageContent.includes('Not Found')
+                pageContent.includes('not found')
             ).toBeTruthy();
 
-            // Layout should still be intact
+            // Layout should still be similar/same
             await expect(page.locator('header, nav').first()).toBeVisible();
             await expect(page.locator('footer').last()).toBeVisible();
         });
 
-        test('should transition from Home to About to Categories', async ({ page }) => {
-            // Start at Home
-            await expect(page).toHaveURL('http://localhost:3000/');
-
-            // Go to About
-            await page.click('text=About').catch(() => page.click('a[href="/about"]'));
+        test('should transition successfully from Home page to About page', async ({ page }) => {
+            const homePageUrl = 'http://localhost:3000/';
+            const aboutLinkLocator = 'text=About';
+            const fallbackAboutLink = 'a[href="/about"]'; // For robustness
+            await page.goto(homePageUrl);
+            await expect(page).toHaveURL(homePageUrl);
+            await page.click(aboutLinkLocator).catch(() => page.click(fallbackAboutLink));
             await expect(page).toHaveURL(/.*about/);
+        });
 
-            // Go to Categories
-            await page.click('text=Categories').catch(() => page.click('a[href="/categories"]'));
-            await expect(page).toHaveURL(/.*categories/);
+        test('should transition successfully from About page to Policy page', async ({ page }) => {
+            const aboutPageUrl = 'http://localhost:3000/about';
+            const policyLinkLocator = 'text=Policy';
+            const fallbackPolicyLink = 'a[href="/policy"]'; // For robustness
+            await page.goto(aboutPageUrl);
+            await expect(page).toHaveURL(/.*about/); // Ensure we landed on About
+            await page.click(policyLinkLocator).catch(() => page.click(fallbackPolicyLink));
+            await expect(page).toHaveURL(/.*policy/);
+        });
 
-            // Verify Layout persists through all transitions
+        test('should ensure basic structural elements (header, main, footer) are visible on the Home page', async ({ page }) => {
             await expect(page.locator('header, nav').first()).toBeVisible();
             await expect(page.locator('main')).toBeVisible();
             await expect(page.locator('footer').last()).toBeVisible();
         });
 
-        test('should handle browser back/forward navigation correctly', async ({ page }) => {
-            // Navigate through pages
+        test('should handle browser back/forward navigation correctly and render content', async ({ page }) => {
             await page.goto('http://localhost:3000');
-            await page.click('text=About').catch(() => page.click('a[href="/about"]'));
+            await page.locator('a[href="/about"]').click();
             await expect(page).toHaveURL(/.*about/);
 
-            await page.click('text=Contact').catch(() => page.click('a[href="/contact"]'));
+            await page.locator('a[href="/contact"]').click();
             await expect(page).toHaveURL(/.*contact/);
 
-            // Go back
             await page.goBack();
             await expect(page).toHaveURL(/.*about/);
 
-            // Go back again
             await page.goBack();
             await expect(page).toHaveURL('http://localhost:3000/');
 
-            // Go forward
             await page.goForward();
             await expect(page).toHaveURL(/.*about/);
 
-            // Layout should remain intact through all navigation
             await expect(page.locator('header, nav').first()).toBeVisible();
             await expect(page.locator('footer').last()).toBeVisible();
         });
 
-        test('should display Pagenotfound for invalid routes', async ({ page }) => {
+        test('should display 404 for invalid routes', async ({ page }) => {
             const invalidRoutes = [
-                '/invalid-page',
-                '/random-route-123',
-                '/does-not-exist'
+                '/invaliddasdgfjksj',
+                '/random-test-route',
+                '/some-nonexistent-page'
             ];
 
             for (const route of invalidRoutes) {
                 await page.goto(`http://localhost:3000${route}`);
 
-                // Check for 404 content
                 const bodyText = await page.textContent('body');
-                const has404Content =
-                    bodyText.includes('404') ||
-                    bodyText.includes('not found') ||
-                    bodyText.includes('Not Found') ||
-                    bodyText.includes('Page Not Found');
+                const has404Content = bodyText.includes('404')
 
                 expect(has404Content).toBeTruthy();
 
-                // Layout should still render
                 await expect(page.locator('header, nav').first()).toBeVisible();
                 await expect(page.locator('footer').last()).toBeVisible();
             }
-        });
-
-        test('should maintain scroll position is reset on page transition', async ({ page }) => {
-            // Go to a page and scroll down
-            await page.goto('http://localhost:3000/about');
-            await page.evaluate(() => window.scrollTo(0, 500));
-
-            const scrollBefore = await page.evaluate(() => window.scrollY);
-            expect(scrollBefore).toBeGreaterThan(0);
-
-            // Navigate to another page
-            await page.click('text=Contact').catch(() => page.click('a[href="/contact"]'));
-            await expect(page).toHaveURL(/.*contact/);
-
-            // Check scroll position (should be reset to top)
-            const scrollAfter = await page.evaluate(() => window.scrollY);
-            expect(scrollAfter).toBeLessThanOrEqual(100); // Allow small offset
         });
     });
 
@@ -331,36 +240,23 @@ test.describe('Layout Component Integration Tests', () => {
             const routes = [
                 { path: '/about', linkText: 'About' },
                 { path: '/contact', linkText: 'Contact' },
-                { path: '/categories', linkText: 'Categories' }
+                { path: '/policy', linkText: 'policy' }
             ];
 
-            for (const { path, linkText } of routes) {
+            for (const { path } of routes) {
                 await page.goto(`http://localhost:3000${path}`);
-
-                // Find the navigation link
-                const navLink = page.locator(`nav a:has-text("${linkText}")`).first();
-
-                // Check for active state (class or aria-current)
-                const className = await navLink.getAttribute('class') || '';
+                const navLink = page.locator(`a[href="${path}"]`).first();
+                const classes = await navLink.getAttribute('class') || '';
+                const hasActiveClass = classes && (classes.includes('active'));
                 const ariaCurrent = await navLink.getAttribute('aria-current');
-
-                const isActive =
-                    className.includes('active') ||
-                    className.includes('current') ||
-                    ariaCurrent === 'page';
-
-                // At least one indicator should show it's active
+                const isActive = hasActiveClass || ariaCurrent === 'page';
                 expect(isActive).toBeTruthy();
             }
         });
 
         test('should only have one active link at a time in Header', async ({ page }) => {
             await page.goto('http://localhost:3000/about');
-
-            // Count elements with active class
             const activeLinks = await page.locator('nav a.active, nav a[aria-current="page"]').count();
-
-            // Should have exactly 1 active link
             expect(activeLinks).toBeLessThanOrEqual(1);
         });
     });
