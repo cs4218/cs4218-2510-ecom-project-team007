@@ -1,7 +1,7 @@
 import request from 'supertest';
-import app from '../app.js';
-import categoryModel from '../models/categoryModel.js';
-import productModel from '../models/productModel';
+import app from '../../app.js';
+import categoryModel from '../../models/categoryModel.js';
+import productModel from '../../models/productModel';
 import { connectTestDB, closeTestDB, clearTestDB, createTestUser } from './setup.js';
 
 describe('Category Routes Integration Tests', () => {

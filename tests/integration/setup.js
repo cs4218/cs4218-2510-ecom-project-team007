@@ -2,8 +2,8 @@ import JWT from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
-import userModel from '../models/userModel.js';
-import { hashPassword } from '../helpers/authHelper.js';
+import userModel from '../../models/userModel.js';
+import { hashPassword } from '../../helpers/authHelper.js';
 
 let mongoServer;
 
@@ -35,7 +35,7 @@ export const createTestUser = async (role = 1, email = 'admin@test.com') => {
     password: hashedPassword,
     phone: '1234567890',
     address: 'Test Address',
-    answer: 'test answer',
+    answer: 'test',
     role: role,  // 0 = regular user, 1 = admin
   });
 
