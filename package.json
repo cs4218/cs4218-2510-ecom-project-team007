@@ -15,7 +15,10 @@
     "test:backend:unit": "npm run test:backend -- --testPathIgnorePatterns=integration --coverage",
     "test:backend:integration": "npm run test:backend -- --testPathPattern=integration",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "keywords": [],
   "author": "RP",
