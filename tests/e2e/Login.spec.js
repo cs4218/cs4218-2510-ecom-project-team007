@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test('Admin Dashboard - Login, Product Management, and Logout', async ({ page }) => {
   await page.goto('http://localhost:3000/');
-  
+  await page.getByRole('button', { name: 'test' }).click();
+  await page.getByRole('link', { name: 'Logout' }).click();
 
   await page.getByRole('link', { name: 'Login' }).click();
   // wrong password should throw error

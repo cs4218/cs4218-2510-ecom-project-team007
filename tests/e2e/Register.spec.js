@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 test('User registration, login, view products, dashboard, and logout flow UI test', async ({ page }) => {
   // Go to homepage
   await page.goto('http://localhost:3000/');
+  await page.getByRole('button', { name: 'test' }).click();
+  await page.getByRole('link', { name: 'Logout' }).click();
 
   // Navigate to Register page
   await page.getByRole('link', { name: 'Register' }).click();
@@ -30,6 +32,8 @@ test('User registration, login, view products, dashboard, and logout flow UI tes
   // Change email and register successfully
   await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test2@gmail.com');
   await page.getByRole('button', { name: 'REGISTER' }).click();
+
+  await page.waitForTimeout(2000);
 
   // Expect navigation to login page and verify ARIA structure
   await expect(page.getByRole('main')).toMatchAriaSnapshot(`
