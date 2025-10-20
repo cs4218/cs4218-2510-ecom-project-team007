@@ -1,15 +1,545 @@
-import productModel from "../models/productModel";
+import fs from 'fs';
+import slugify from 'slugify';
+import productModel from '../models/productModel';
+import { productSchema } from '../client/src/schemas/productSchema';
+import { validateProductPhoto } from '../client/src/utils/photoValidation';
 import {
+  createProductController,
+  updateProductController,
+  deleteProductController,
   getProductController,
   getSingleProductController,
   productPhotoController,
   productFiltersController,
   productCountController,
   productListController,
-} from '../controllers/productController';
+} from './productController';
 
+jest.mock('fs');
+jest.mock('slugify');
 jest.mock('../models/productModel');
 
+jest.mock('../client/src/schemas/productSchema', () => ({
+  productSchema: {
+    validate: jest.fn(),
+  },
+}));
+
+jest.mock('../client/src/utils/photoValidation', () => ({
+  validateProductPhoto: jest.fn(),
+}));
+
+describe('productController', () => {
+  const pid = '1';
+  const name = 'Laptop';
+  const slug = 'laptop';
+  const description = 'High-performance laptop';
+  const price = 999.99;
+  const category = 'Electronics';
+  const quantity = 10;
+  const shipping = true;
+
+  const createMockProduct = () => ({
+    _id: pid,
+    name,
+    slug,
+    description,
+    price,
+    category,
+    quantity,
+    shipping,
+    photo: {},
+    save: jest.fn(),
+  });
+
+  let res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    productSchema.validate.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe('createProductController', () => {
+    let req;
+
+    beforeEach(() => {
+      req = {
+        fields: {
+          name,
+          description,
+          price,
+          category,
+          quantity,
+          shipping,
+        },
+        files: {},
+      };
+    });
+
+    it('creates a new product with a photo successfully', async () => {
+      const mockProduct = createMockProduct();
+      const photo = {
+        path: '/tmp/photo.jpg',
+        type: 'image/jpeg',
+      };
+      const photoData = Buffer.from('photo data');
+
+      req.files = { photo };
+
+      validateProductPhoto.mockReturnValue(null);
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(slug);
+      productModel.mockImplementation(() => mockProduct);
+      fs.readFileSync.mockReturnValue(photoData);
+
+      await createProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${name}$`, $options: 'i' },
+      });
+
+      expect(slugify).toHaveBeenCalledWith(name);
+      expect(productModel).toHaveBeenCalledWith({ ...req.fields, slug });
+
+      expect(fs.readFileSync).toHaveBeenCalledWith(photo.path);
+      expect(mockProduct.photo.data).toBe(photoData);
+      expect(mockProduct.photo.contentType).toBe(photo.type);
+
+      expect(mockProduct.save).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product created successfully',
+        product: mockProduct,
+      });
+    });
+
+    it('creates a new product without a photo successfully', async () => {
+      const mockProduct = createMockProduct();
+
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(slug);
+      productModel.mockImplementation(() => mockProduct);
+
+      await createProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${name}$`, $options: 'i' },
+      });
+
+      expect(slugify).toHaveBeenCalledWith(name);
+      expect(productModel).toHaveBeenCalledWith({ ...req.fields, slug });
+      expect(mockProduct.save).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product created successfully',
+        product: mockProduct,
+      });
+    });
+
+    it('returns 400 error when field validation fails', async () => {
+      const error = 'Validation error';
+      productSchema.validate.mockRejectedValue({ errors: [error] });
+
+      await createProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: error,
+      });
+    });
+
+    it('returns 400 error when photo validation fails', async () => {
+      const error = 'Invalid file type';
+      const photo = {
+        path: '/tmp/photo.gif',
+        type: 'image/gif',
+      };
+
+      req.files = { photo };
+
+      validateProductPhoto.mockReturnValue(error);
+
+      await createProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: error,
+      });
+    });
+
+    it('returns 409 error when the product name already exists', async () => {
+      productModel.exists.mockResolvedValue({ _id: pid });
+
+      await createProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${name}$`, $options: 'i' },
+      });
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Product name already exists',
+      });
+    });
+
+    it('returns 500 error when checking for existing name fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockRejectedValue(new Error('Database query failed'));
+
+      await createProductController(req, res);
+
+      expect(productModel).not.toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to create product',
+      });
+    });
+
+    it('returns 500 error when saving product fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(slug);
+
+      const mockSave = jest.fn().mockRejectedValue(new Error('Database save failed'));
+      productModel.mockImplementation(() => ({ save: mockSave }));
+
+      await createProductController(req, res);
+
+      expect(mockSave).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to create product',
+      });
+    });
+  });
+
+  describe('updateProductController', () => {
+    const updatedName = 'Gaming Laptop';
+    const updatedSlug = 'gaming-laptop';
+
+    let req;
+
+    beforeEach(() => {
+      req = {
+        params: { pid },
+        fields: {
+          name: updatedName,
+          description: 'High-performance gaming laptop',
+          price: 1299.99,
+          category,
+          quantity: 5,
+          shipping,
+        },
+        files: {},
+      };
+    });
+
+    it('updates a product with a photo successfully', async () => {
+      const mockProduct = createMockProduct();
+      const photo = {
+        path: '/tmp/photo.jpg',
+        type: 'image/jpeg',
+      };
+      const photoData = Buffer.from('photo data');
+
+      req.files = { photo };
+
+      validateProductPhoto.mockReturnValue(null);
+      productModel.findById.mockResolvedValue(mockProduct);
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(updatedSlug);
+      fs.readFileSync.mockReturnValue(photoData);
+
+      await updateProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+      expect(productModel.findById).toHaveBeenCalledWith(pid);
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${updatedName}$`, $options: 'i' },
+        _id: { $ne: pid },
+      });
+
+      expect(slugify).toHaveBeenCalledWith(updatedName);
+      expect(mockProduct.slug).toBe(updatedSlug);
+
+      expect(fs.readFileSync).toHaveBeenCalledWith(photo.path);
+      expect(mockProduct.photo.data).toBe(photoData);
+      expect(mockProduct.photo.contentType).toBe(photo.type);
+
+      expect(mockProduct.save).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product updated successfully',
+        product: mockProduct,
+      });
+    });
+
+    it('updates a product without a photo successfully', async () => {
+      const mockProduct = createMockProduct();
+
+      productModel.findById.mockResolvedValue(mockProduct);
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(updatedSlug);
+
+      await updateProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(productModel.findById).toHaveBeenCalledWith(pid);
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${updatedName}$`, $options: 'i' },
+        _id: { $ne: pid },
+      });
+
+      expect(slugify).toHaveBeenCalledWith(updatedName);
+      expect(mockProduct.slug).toBe(updatedSlug);
+      expect(mockProduct.save).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product updated successfully',
+        product: mockProduct,
+      });
+    });
+
+    it('returns 400 error when field validation fails', async () => {
+      const error = 'Validation error';
+      productSchema.validate.mockRejectedValue({ errors: [error] });
+
+      await updateProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: error,
+      });
+    });
+
+    it('returns 400 error when photo validation fails', async () => {
+      const error = 'Invalid file type';
+      const photo = {
+        path: '/tmp/photo.gif',
+        type: 'image/gif',
+      };
+
+      req.files = { photo };
+
+      validateProductPhoto.mockReturnValue(error);
+
+      await updateProductController(req, res);
+
+      expect(productSchema.validate).toHaveBeenCalledWith(req.fields);
+      expect(validateProductPhoto).toHaveBeenCalledWith(photo);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: error,
+      });
+    });
+
+    it('returns 404 error when product to update does not exist', async () => {
+      productModel.findById.mockResolvedValue(null);
+
+      await updateProductController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith(pid);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Product not found',
+      });
+    });
+
+    it('returns 409 error when the new product name already exists', async () => {
+      const mockProduct = createMockProduct();
+
+      productModel.findById.mockResolvedValue(mockProduct);
+      productModel.exists.mockResolvedValue({ _id: '2' });
+
+      await updateProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({
+        name: { $regex: `^${updatedName}$`, $options: 'i' },
+        _id: { $ne: pid },
+      });
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Product name already exists',
+      });
+    });
+
+    it('returns 500 error when finding product to update fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.findById.mockRejectedValue(new Error('Database query failed'));
+
+      await updateProductController(req, res);
+
+      expect(productModel.exists).not.toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to update product',
+      });
+    });
+
+    it('returns 500 error when checking for existing name fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockProduct = createMockProduct();
+
+      productModel.findById.mockResolvedValue(mockProduct);
+      productModel.exists.mockRejectedValue(new Error('Database query failed'));
+
+      await updateProductController(req, res);
+
+      expect(mockProduct.save).not.toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to update product',
+      });
+    });
+
+    it('returns 500 error when saving product fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockProduct = createMockProduct();
+      mockProduct.save.mockRejectedValue(new Error('Database save failed'));
+
+      productModel.findById.mockResolvedValue(mockProduct);
+      productModel.exists.mockResolvedValue(null);
+      slugify.mockReturnValue(updatedSlug);
+
+      await updateProductController(req, res);
+
+      expect(mockProduct.save).toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to update product',
+      });
+    });
+  });
+
+  describe('deleteProductController', () => {
+    let req;
+
+    beforeEach(() => {
+      req = {
+        params: { pid },
+      };
+    });
+
+    it('deletes a product successfully', async () => {
+      productModel.exists.mockResolvedValue({ _id: pid });
+      productModel.findByIdAndDelete.mockResolvedValue();
+
+      await deleteProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({ _id: pid });
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(pid);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        message: 'Product deleted successfully',
+      });
+    });
+
+    it('returns 404 error when product to delete does not exist', async () => {
+      productModel.exists.mockResolvedValue(null);
+
+      await deleteProductController(req, res);
+
+      expect(productModel.exists).toHaveBeenCalledWith({ _id: pid });
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Product not found',
+      });
+    });
+
+    it('returns 500 error when checking if product to delete exists fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockRejectedValue(new Error('Database query failed'));
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).not.toHaveBeenCalled();
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to delete product',
+      });
+    });
+
+    it('returns 500 error when deleting product fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      productModel.exists.mockResolvedValue({ _id: pid });
+      productModel.findByIdAndDelete.mockRejectedValue(new Error('Database delete failed'));
+
+      await deleteProductController(req, res);
+
+      expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(pid);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: 'Failed to delete product',
+      });
+    });
+  });
+});
 
 describe("Test getProductController", () => {
   let req, res;
@@ -97,6 +627,18 @@ describe("Test getSingleProductController", () => {
     });
   });
 
+  it("Should handle empty requests (400)", async () => {
+    req = {};
+
+    await getSingleProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing parameter in request"
+    });
+  });
+
   it("Should handle no product found (404)", async () => {
     const query = {
       select: jest.fn().mockReturnThis(),
@@ -162,6 +704,18 @@ describe("Test productPhotoController", () => {
     expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith(testPhoto.data);
+  });
+
+  it("Should handle empty requests (400)", async () => {
+    req = {};
+
+    await productPhotoController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing parameter in request"
+    });
   });
 
   it("Should handle photo not found (404)", async () => {
@@ -335,6 +889,7 @@ describe("Test productFiltersController", () => {
   });
 });
 
+
 describe("Test productCountController", () => {
   let req, res;
 
@@ -382,8 +937,140 @@ describe("Test productCountController", () => {
 });
 
 
+describe("Test productListController", () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    req = {};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn()
+    }
+  });
+
+  describe("Query should be successful when", () => {
+    const stubProducts = {category: "sample"};
+
+    it("request for page 1", async () => {
+      req = { params: { page: 1 }};
+    
+      const query = {
+        skip: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(stubProducts),
+      };
+      productModel.find.mockReturnValue(query);
+
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: stubProducts
+      });
+    });
+
+    it("request for page 0", async () => {
+      req = { params: { page: 0 }};
+    
+      const query = {
+        skip: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(stubProducts),
+      };
+      productModel.find.mockReturnValue(query);
+
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: stubProducts
+      });
+    });
+
+    it("request for page 12", async () => {
+      req = { params: { page: 12 }};
+    
+      const query = {
+        skip: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(stubProducts),
+      };
+      productModel.find.mockReturnValue(query);
+
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        products: stubProducts
+      });
+    });
+  });
+
+  it("Correct skip count should be passed to mongoose", async () => {
+    req = { params: { page: 12 }};
+
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(undefined),
+    };
+    productModel.find.mockReturnValue(query);
+
+    await productListController(req, res);
+
+    expect(query.skip).toHaveBeenCalledWith(66);  // 6 * (12 - 1)
+  });
+
+  describe("Proper error handling when", () => {
+    it ("params field not included in request", async () => {
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Missing parameter in request"
+      });
+    });
+
+    it ("invalid page value", async () => {
+      const req = { params: { page: -1 }};
+
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Invalid 'page' parameter in request"
+      });
+    });
+
+    it ("server error", async () => {
+      req = { params: { page: 1 }};
+      const errorMessage = "DB query error";
+      productModel.find.mockImplementation(() => { throw new Error(errorMessage); });
+
+      await productListController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error in product list",
+        error: errorMessage
+      });
+    });
+  });
+});
+
+
 // paymentController.test.js
-const { describe } = require("node:test");
 
 /********************************Payment Test Case*************************************** */
 

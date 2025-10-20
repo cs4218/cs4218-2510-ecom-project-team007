@@ -35,9 +35,9 @@ describe("CartPage", () => {
   });
 
   it("renders cart item and total price", async () => {
-    // Mock cart with 1 item
-    const setCart = jest.fn();
     
+    const setCart = jest.fn();
+    // Mock cart with 1 item
     useCart.mockReturnValue([[{ _id: "1", name: "Test Item", price: 10, description: "Test Description" }], setCart]);
     useAuth.mockReturnValue([{ user: { name: "John", address: "Addr" }, token: "token" }]);
 
