@@ -131,7 +131,7 @@ describe('PUT /api/v1/auth/profile', () => {
             .send(invalidData);
 
         expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Passsword is required and 6 character long');
+        expect(response.body.error).toBe('Passsword must be at least 6 characters long');
     });
 
     it('returns same user data if empty request body', async () => {
