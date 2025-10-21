@@ -6,8 +6,8 @@ import productModel from '../../models/productModel';
 import { clearTestDB, closeTestDB, connectTestDB, createTestUser } from './setup.js';
 
 describe('Product Routes Integration Tests', () => {
-  const jpgPhotoPath = path.join(__dirname, 'fixtures', 'test-image.jpg');
-  const gifPhotoPath = path.join(__dirname, 'fixtures', 'test-image.gif');
+  const jpgPhotoPath = path.join(__dirname, '..', 'fixtures', 'test-image.jpg');
+  const gifPhotoPath = path.join(__dirname, '..', 'fixtures', 'test-image.gif');
 
   const fakeId = '507f1f77bcf86cd799439011';
 
@@ -242,7 +242,7 @@ describe('Product Routes Integration Tests', () => {
       expect(body.message).toBe('Product not found');
     });
 
-    it('returns 409 error when the new product name already exists', async () => {
+    it('returns 409 error when the updated product name already exists', async () => {
       const response = await createProductRequest().expect(201);
       const id = response.body.product._id;
 

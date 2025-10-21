@@ -326,7 +326,7 @@ describe('UpdateProduct Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard/admin/products', { state: { updated: true } });
     });
 
-    it('shows an error message when the new product name already exists', async () => {
+    it('shows an error message when the updated product name already exists', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       axios.put.mockRejectedValue({

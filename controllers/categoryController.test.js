@@ -220,7 +220,7 @@ describe('categoryController', () => {
       });
     });
 
-    it('returns 409 error when the new category name already exists', async () => {
+    it('returns 409 error when the updated category name already exists', async () => {
       req.body = { name: updatedName };
 
       categoryModel.exists
