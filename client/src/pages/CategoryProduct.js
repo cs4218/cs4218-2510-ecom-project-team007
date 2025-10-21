@@ -2,28 +2,61 @@ import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/CategoryProductStyles.css";
+import { useCart } from "../context/cart";
 import axios from "axios";
+import toast from "react-hot-toast";
 import {getProductImageProps} from "../utils/productImage";
+
 const CategoryProduct = () => {
   const params = useParams();
   const navigate = useNavigate();
+  const [cart, setCart] = useCart();
   const [products, setProducts] = useState([]);
+  const [showProducts, setShowProducts] = useState([]);
   const [category, setCategory] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (params?.slug) getPrductsByCat();
-  }, [params?.slug]);
-  const getPrductsByCat = async () => {
+  const getProductsByCat = async () => {
     try {
+      setLoading(true);
       const { data } = await axios.get(
         `/api/v1/product/product-category/${params.slug}`
       );
+      setLoading(false);
+
       setProducts(data?.products);
       setCategory(data?.category);
+      setTotal(data?.products.length || 0);
+      setShowProducts((data?.products || []).slice(0, 6));
+
     } catch (error) {
       console.log(error);
     }
   };
+  
+  const loadMore = async () => {
+    try {
+      setLoading(true);
+      const nextProducts = products.slice((page - 1) * 6, page * 6);
+      setShowProducts([...showProducts, ...nextProducts]);
+      setLoading(false);
+
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (params?.slug) getProductsByCat();
+  }, [params?.slug]);
+
+  useEffect(() => {
+    if (page === 1) return;
+    loadMore();
+  }, [page]);
 
   return (
     <Layout>
@@ -33,7 +66,7 @@ const CategoryProduct = () => {
         <div className="row">
           <div className="col-md-9 offset-1">
             <div className="d-flex flex-wrap">
-              {products?.map((p) => (
+              {showProducts?.map((p) => (
                 <div className="card m-2" key={p._id}>
                   <img {...getProductImageProps(p)} className="card-img-top" />
                   <div className="card-body">
@@ -56,7 +89,7 @@ const CategoryProduct = () => {
                       >
                         More Details
                       </button>
-                      {/* <button
+                      {<button
                     className="btn btn-dark ms-1"
                     onClick={() => {
                       setCart([...cart, p]);
@@ -68,25 +101,25 @@ const CategoryProduct = () => {
                     }}
                   >
                     ADD TO CART
-                  </button> */}
+                  </button>}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            {/* <div className="m-2 p-3">
-            {products && products.length < total && (
+            <div className="m-2 p-3">
+            {showProducts && showProducts.length < total && (
               <button
-                className="btn btn-warning"
+                className="btn loadmore"
                 onClick={(e) => {
                   e.preventDefault();
                   setPage(page + 1);
                 }}
               >
-                {loading ? "Loading ..." : "Loadmore"}
+                {loading ? "Loading ..." : "Load more"}
               </button>
             )}
-          </div> */}
+          </div>
           </div>
         </div>
       </div>
