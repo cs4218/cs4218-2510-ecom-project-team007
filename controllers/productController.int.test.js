@@ -237,11 +237,10 @@ describe("Test productPhotoController with mongoose", () => {
     req.params.pid = product._id;
 
     await productPhotoController(req, res);
-    const resData = res.send.mock.calls[0][0];
+    const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(resData.success).toBe(true);
-    expect(resData.data).toMatchObject(product.photo.data);
+    expect(data).toMatchObject(product.photo.data);
   });
 
   it("should return only found product photo", async () => {
@@ -250,11 +249,10 @@ describe("Test productPhotoController with mongoose", () => {
     req.params.pid = product._id;
 
     await productPhotoController(req, res);
-    const resData = res.send.mock.calls[0][0];
+    const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(resData.success).toBe(true);
-    expect(resData.data).toMatchObject(product.photo.data);
+    expect(data).toMatchObject(product.photo.data);
   });
 
   it("should return 404 if product not found", async () => {
