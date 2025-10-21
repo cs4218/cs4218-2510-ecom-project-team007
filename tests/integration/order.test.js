@@ -295,7 +295,7 @@ describe('Order System Integration Tests', () => {
         .expect(403);
     });
 
-    it('should return 200 for non-existent order (your controller behavior)', async () => {
+    it('should return 200 for non-existent order', async () => {
       const fakeOrderId = new mongoose.Types.ObjectId();
       
       const response = await request(app)
@@ -305,7 +305,7 @@ describe('Order System Integration Tests', () => {
         .expect(200);
     });
 
-    it('should return 200 for invalid status (your controller behavior)', async () => {
+    it('should return 200 for invalid status', async () => {
       const response = await request(app)
         .put(`/api/v1/auth/order-status/${testOrder._id}`)
         .set('Authorization', 'Bearer admin_token')

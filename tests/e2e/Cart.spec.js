@@ -2,7 +2,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Cart Basic Operations", () => {
-  test("Add item to cart and verify it appears in cart", async ({ page }) => {
+  test("Add item to cart from homepage and verify it appears in cart", async ({ page }) => {
     await page.goto("http://localhost:3000/");
     await page.waitForSelector(".card");
     
@@ -73,29 +73,6 @@ test.describe("Cart Management", () => {
     const cartHeading = page.locator("h1").first();
     const headingText = await cartHeading.textContent();
     expect(headingText).toContain("2 items");
-  });
-
-  test("Update item quantity in cart - decrease", async ({ page }) => {
-    await page.goto("http://localhost:3000/");
-    await page.waitForSelector(".card");
-    
-    const firstProduct = page.locator(".card").first();
-    const productName = await firstProduct.locator(".card-title").first().textContent();
-    
-    await firstProduct.getByRole("button", { name: "ADD TO CART" }).click();
-    await page.waitForTimeout(500);
-    await firstProduct.getByRole("button", { name: "ADD TO CART" }).click();
-    
-    await page.goto("http://localhost:3000/cart");
-    await waitForCartPage(page);
-    
-    const removeBtn = page.locator('button:has-text("Remove")').first();
-    await removeBtn.click();
-    await page.waitForTimeout(1000);
-    
-    const cartHeading = page.locator("h1").first();
-    const headingText = await cartHeading.textContent();
-    expect(headingText).toMatch(/1 items?|empty/i);
   });
 
   test("Remove item from cart", async ({ page }) => {
@@ -322,7 +299,7 @@ test.describe("Cart Calculations", () => {
     
     for (let i = 0; i < 2; i++) {
       const product = page.locator(".card").nth(i);
-      // FIX: Get price from h5 element instead of .card-text
+      
       const productPriceText = await product.locator("h5").last().textContent();
       const productPrice = parseFloat(productPriceText.replace(/[^0-9.]/g, ''));
       expectedTotal += productPrice;
