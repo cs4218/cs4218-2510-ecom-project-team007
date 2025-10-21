@@ -704,10 +704,7 @@ describe("Test productPhotoController", () => {
     expect(productModel.findById).toHaveBeenCalledWith(testPid);
     expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith({
-      success: true,
-      data: testPhoto.data
-    });
+    expect(res.send).toHaveBeenCalledWith(testPhoto.data);
   });
 
   it("Should handle empty requests (400)", async () => {
