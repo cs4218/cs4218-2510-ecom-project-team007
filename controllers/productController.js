@@ -269,10 +269,10 @@ export const productPhotoController = async (req, res) => {
   }
 };
 
-// filters
+// filters with pagination support
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked, radio } = req.body;
+    const { checked, radio, page = 1 } = req.body;
 
     if (radio !== undefined && (!Array.isArray(radio) || ![0,2].includes(radio.length)))
       return res.status(400).send({
@@ -284,10 +284,25 @@ export const productFiltersController = async (req, res) => {
     if (checked && checked.length > 0) args.category = checked;
     if (radio && radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
 
-    const products = await productModel.find(args);
+    const perPage = 6;
+    
+    // Get total count of filtered products
+    const total = await productModel.countDocuments(args);
+    
+    // Get paginated filtered products
+    const products = await productModel
+      .find(args)
+      .select("-photo.data")
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
       products,
+      total,
+      page,
+      pages: Math.ceil(total / perPage)
     });
   } catch (error) {
     console.log(error);
