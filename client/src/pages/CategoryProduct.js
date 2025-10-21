@@ -100,7 +100,7 @@ const CategoryProduct = () => {
                       toast.success("Item Added to cart");
                     }}
                   >
-                    ADD TO CART
+                    Add to cart
                   </button>}
                     </div>
                   </div>

@@ -21,8 +21,12 @@ test('Category Product Page', async ({ page }) => {
   await expect(page.getByRole('main')).not.toContainText('Product 9');
 
   // should see the "Load more" button
-  await expect(page.getByRole('button', { name: 'Load more' })).toBeVisible();
-  await page.getByRole('button', { name: 'Load more' }).click();
+  await expect(page.getByRole('button', { name: /Load more/i })).toBeVisible();
+  await page.getByRole('button', { name: /Load more/i }).click();
+
+  // a product should have the "ADD TO CART" and "MORE DETAILS" buttons
+  await expect(page.getByRole('button', { name: /Add to cart/i }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /More Details/i }).first()).toBeVisible();
 
   // should show the remaining 3 products as well
   await expect(page.getByRole('main')).toContainText('Product 1');
@@ -36,5 +40,5 @@ test('Category Product Page', async ({ page }) => {
   await expect(page.getByRole('main')).toContainText('Product 9');
 
   // should not have "Load more" button since fully loaded
-  await expect(page.getByRole('button', { name: 'Load more' })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /Load more/i })).not.toBeVisible();
 });
