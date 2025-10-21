@@ -36,10 +36,10 @@ export const createProductController = async (req, res) => {
         return res.status(400).send({ error: "Quantity is Required" });
       case !shipping:
         return res.status(400).send({ error: "Shipping is Required" });
-      case !photo || photo.size > 1000000:
+      case photo && photo.size > 1000000:
         return res
           .status(400)
-          .send({ error: "Photo is required and should be less then 1MB" });
+          .send({ error: "Photo should be less then 1MB" });
     }
 
     // additional validations
@@ -50,16 +50,18 @@ export const createProductController = async (req, res) => {
     if (!Number.isInteger(tmp_quantity) || tmp_quantity < 0) // zero already handled above
       return res.status(400).send({ error: "Invalid quantity value" });
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
-    products.photo.data = fs.readFileSync(photo.path);
-    products.photo.contentType = photo.type;
+    const product = new productModel({ ...req.fields, slug: slugify(name) });
+    if (photo) {  
+      product.photo.data = fs.readFileSync(photo.path);
+      product.photo.contentType = photo.type;
+    }
 
-    await products.save();
+    await product.save();
 
     res.status(201).send({
       success: true,
       message: "Product created successfully",
-      products,
+      product,
     });
 
   } catch (error) {
@@ -79,7 +81,6 @@ export const getProductController = async (req, res) => {
       .find({})
       .populate("category")
       .select("-photo")
-      .limit(12)
       .sort({ createdAt: -1 });
 
     res.status(200).send({
@@ -155,7 +156,7 @@ export const productPhotoController = async (req, res) => {
     }
     
     res.set("Content-type", product.photo.contentType);
-    return res.status(200).send(product.photo.data);
+    return res.status(200).send({ success: true, data: product.photo.data });
 
   } catch (error) {
     console.log(error);
@@ -249,7 +250,7 @@ export const productFiltersController = async (req, res) => {
     if (checked && checked.length > 0) args.category = checked;
     if (radio && radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
 
-    const products = await productModel.find(args);
+    const products = await productModel.find(args).select("-photo");
     res.status(200).send({
       success: true,
       products,
@@ -370,22 +371,34 @@ export const realtedProductController = async (req, res) => {
   }
 };
 
-// get prdocyst by catgory
+// get product by category
 export const productCategoryController = async (req, res) => {
   try {
+    if (!req.params || !req.params.slug)
+      return res.status(400).send({
+        success: false,
+        message: "Missing request parameter for category slug"
+      });
+
     const category = await categoryModel.findOne({ slug: req.params.slug });
-    const products = await productModel.find({ category }).populate("category");
-    res.status(200).send({
-      success: true,
-      category,
-      products,
-    });
+    if (!category)
+      return res.status(404).send({
+        success: false,
+        message: "Requested category not found"
+      });
+
+    const products = await productModel.find({ category })
+                        .populate("category")
+                        .select("-photo");
+
+    res.status(200).send({ success: true, category, products });
+
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      error,
-      message: "Error While Getting products",
+      message: "Error while getting products via category",
+      error: error.message,
     });
   }
 };
