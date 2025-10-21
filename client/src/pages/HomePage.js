@@ -37,6 +37,7 @@ const HomePage = () => {
     getAllCategory();
     getTotal();
   }, []);
+
   //get products
   const getAllProducts = async () => {
     try {
@@ -64,13 +65,29 @@ const HomePage = () => {
     if (page === 1) return;
     loadMore();
   }, [page]);
+
   //load more
   const loadMore = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
-      setProducts([...products, ...data?.products]);
+      
+      // Check if filters are active
+      if (checked.length || radio.length) {
+        // Load more with filters
+        const { data } = await axios.post("/api/v1/product/product-filters", {
+          checked,
+          radio,
+          page
+        });
+        setLoading(false);
+        setProducts([...products, ...data?.products]);
+        setTotal(data?.total);
+      } else {
+        // Load more without filters
+        const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+        setLoading(false);
+        setProducts([...products, ...data?.products]);
+      }
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -87,26 +104,39 @@ const HomePage = () => {
     }
     setChecked(all);
   };
+
   useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
+    if (!checked.length && !radio.length) {
+      getAllProducts();
+    }
   }, [checked.length, radio.length]);
 
   useEffect(() => {
-    if (checked.length || radio.length) filterProduct();
+    if (checked.length || radio.length) {
+      // Reset to page 1 when filters change
+      setPage(1);
+      filterProduct();
+    }
   }, [checked, radio]);
 
-  //get filterd product
+  //get filtered product
   const filterProduct = async () => {
     try {
+      setLoading(true);
       const { data } = await axios.post("/api/v1/product/product-filters", {
         checked,
         radio,
+        page: 1
       });
+      setLoading(false);
       setProducts(data?.products);
+      setTotal(data?.total);
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
+
   return (
     <Layout title={"ALL Products - Best offers "}>
       {/* banner image */}
@@ -155,7 +185,12 @@ const HomePage = () => {
           <div className="d-flex flex-wrap">
             {products?.map((p) => (
               <div className="card m-2" key={p._id}>
-                <img {...getProductImageProps(p)} className="card-img-top" onClick={() => navigate(`/product/${p.slug}`)} style={{ cursor: "pointer" }}/>
+                <img 
+                  {...getProductImageProps(p)} 
+                  className="card-img-top" 
+                  onClick={() => navigate(`/product/${p.slug}`)} 
+                  style={{ cursor: "pointer" }}
+                />
                 <div className="card-body">
                   <div className="card-name-price">
                     <h5 className="card-title">{p.name}</h5>
