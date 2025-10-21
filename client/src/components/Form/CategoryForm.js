@@ -3,7 +3,7 @@ import React from 'react';
 const CategoryForm = ({ handleSubmit, value, setValue }) => {
   return (
     <>
-      <form onSubmit={handleSubmit} aria-label="Category Form">
+      <form onSubmit={handleSubmit} aria-label="Category form">
         <div className="mb-3">
           <input
             type="text"
@@ -13,7 +13,6 @@ const CategoryForm = ({ handleSubmit, value, setValue }) => {
             onChange={(e) => setValue(e.target.value)}
           />
         </div>
-
         <button
           type="submit"
           className="btn btn-primary"

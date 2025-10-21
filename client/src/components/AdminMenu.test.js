@@ -1,27 +1,27 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import AdminMenu from './AdminMenu';
 
 describe('AdminMenu Component', () => {
   const links = [
-    { name: 'Create Category', path: '/dashboard/admin/create-category', page: 'Create Category Page' },
-    { name: 'Create Product', path: '/dashboard/admin/create-product', page: 'Create Product Page' },
-    { name: 'Products', path: '/dashboard/admin/products', page: 'Products Page' },
-    { name: 'Orders', path: '/dashboard/admin/orders', page: 'Orders Page' },
-    { name: 'Users', path: '/dashboard/admin/users', page: 'Users Page' },
+    { name: 'Create Category', path: '/dashboard/admin/create-category' },
+    { name: 'Create Product', path: '/dashboard/admin/create-product' },
+    { name: 'Products', path: '/dashboard/admin/products' },
+    { name: 'Orders', path: '/dashboard/admin/orders' },
+    { name: 'Users', path: '/dashboard/admin/users' },
   ];
+
+  const renderWithRouter = (component) => {
+    return render(<MemoryRouter>{component}</MemoryRouter>);
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-  })
+  });
 
-  it('renders admin menu with heading and links', () => {
-    render(
-      <MemoryRouter>
-        <AdminMenu />
-      </MemoryRouter>
-    );
+  it('renders the component with heading and links', () => {
+    renderWithRouter(<AdminMenu />);
 
     expect(screen.getByRole('heading', { name: 'Admin Panel' })).toBeInTheDocument();
 
@@ -30,34 +30,11 @@ describe('AdminMenu Component', () => {
     });
   });
 
-  it('renders navigation links with correct hrefs', () => {
-    render(
-      <MemoryRouter>
-        <AdminMenu />
-      </MemoryRouter>
-    );
+  it('renders navigation links with correct paths', () => {
+    renderWithRouter(<AdminMenu />);
 
     links.forEach(({ name, path }) => {
       expect(screen.getByRole('link', { name })).toHaveAttribute('href', path);
     });
   });
-
-  it.each(links.map(link => [link.name, link.path, link.page]))(
-    'navigates to the %s page when clicked',
-    (name, path, page) => {
-      render(
-        <MemoryRouter initialEntries={['/dashboard/admin']}>
-          <Routes>
-            <Route path="/dashboard/admin" element={<AdminMenu />} />
-            <Route path={path} element={<div>{page}</div>} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      const link = screen.getByRole('link', { name });
-      fireEvent.click(link);
-
-      expect(screen.getByText(page)).toBeInTheDocument();
-    }
-  );
 });

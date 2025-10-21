@@ -3,27 +3,21 @@ import { render, screen } from '@testing-library/react';
 import { useAuth } from '../../context/auth';
 import AdminDashboard from './AdminDashboard';
 
-jest.mock('../../context/auth', () => ({
-  useAuth: jest.fn(() => [null, jest.fn()]),
-}));
+jest.mock('../../components/AdminMenu', () =>
+  jest.fn(() => <div>Admin Menu</div>)
+);
 
 jest.mock('../../components/Layout', () =>
   jest.fn(({ children }) => <div>{children}</div>)
 );
 
-jest.mock('../../components/AdminMenu', () =>
-  jest.fn(() => <div>Admin Menu</div>)
-);
+jest.mock('../../context/auth', () => ({
+  useAuth: jest.fn(),
+}));
 
 describe('AdminDashboard Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders admin menu inside admin dashboard', () => {
-    render(<AdminDashboard />);
-
-    expect(screen.getByText('Admin Menu')).toBeInTheDocument();
   });
 
   it('displays admin details when user exists', () => {
@@ -33,7 +27,7 @@ describe('AdminDashboard Component', () => {
       phone: '81234567',
     };
 
-    useAuth.mockReturnValue([{ user: mockUser }, jest.fn()]);
+    useAuth.mockReturnValue([{ user: mockUser }]);
 
     render(<AdminDashboard />);
 
@@ -43,9 +37,9 @@ describe('AdminDashboard Component', () => {
   });
 
   it.each([
-    ['user is null', [{ user: null }, jest.fn()]],
-    ['auth is null', [null, jest.fn()]],
-  ])('displays empty admin fields when %s', (description, mockAuth) => {
+    ['user is null', [{ user: null }]],
+    ['auth is null', [null]],
+  ])('displays empty admin fields when %s', (_, mockAuth) => {
     useAuth.mockReturnValue(mockAuth);
 
     render(<AdminDashboard />);

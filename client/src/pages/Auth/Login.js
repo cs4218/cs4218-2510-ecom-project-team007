@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "./../../components/Layout";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -15,6 +15,11 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  useEffect(() => {
+    if (location.state?.message) {
+      toast.error(location.state.message, { duration: 1000 });
+    }
+  }, [location.state]);
 
   // form function
   const handleSubmit = async (e) => {
@@ -26,20 +31,25 @@ const Login = () => {
       });
       if (res && res.data.success) {
         toast.success(res.data && res.data.message, {
-            duration: 5000,
+            duration: 2000,
             icon: "🙏",
             style: {
               background: "green",
               color: "white",
             },
           });
+
+        localStorage.setItem("auth", JSON.stringify(res.data));  
+
         setAuth({
             ...auth,
             user: res.data.user,
             token: res.data.token,
         });
-        localStorage.setItem("auth", JSON.stringify(res.data));
-        navigate(location.state || "/");
+        
+        setTimeout(() => {
+          navigate(location.state?.from  || "/");
+        }, 300);
       } else {
         toast.error(res.data.message);
       }
