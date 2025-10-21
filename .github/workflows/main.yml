@@ -31,7 +31,7 @@ jobs:
         run: npm run test:frontend
 
       - name: Run backend integration tests
-        run: npm run test:backend:integration
+        run: npm run test:backend -- --testPathPattern=tests/integration
         env:
           NODE_ENV: test
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
