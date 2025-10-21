@@ -36,7 +36,10 @@ const Header = () => {
             <span className="navbar-toggler-icon" />
           </button>
           <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <Link to="/" className="navbar-brand">
+            <Link to="/" className="navbar-brand" onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/";
+            }}>
               🛒 Virtual Vault
             </Link>
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -61,7 +64,7 @@ const Header = () => {
                     </Link>
                   </li>
                   {categories?.map((c) => (
-                    <li>
+                    <li key={c._id}>
                       <Link
                         className="dropdown-item"
                         to={`/category/${c.slug}`}

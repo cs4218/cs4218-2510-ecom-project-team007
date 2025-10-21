@@ -1,6 +1,19 @@
-node_modules
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/coverage
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.test
+
+# IDE
+.idea/
+
+# Test coverage
+coverage/
+
+# Playwright
+blob-report/
+playwright/.cache/
+playwright-report/
+test-results/
+tests/e2e/.auth/

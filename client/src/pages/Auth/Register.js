@@ -13,10 +13,27 @@ const Register = () => {
   const [DOB, setDOB] = useState("");
   const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+
+  const maxDate = `${yyyy}-${mm}-${dd}`;
 
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!/^\d+$/.test(phone)) {
+      toast.error("Phone must contain only numbers");
+      return;
+    }
+
+    if (new Date(DOB) > new Date()) {
+      toast.error("DOB cannot be in the future");
+      return;
+    }
+
     try {
       const res = await axios.post("/api/v1/auth/register", {
         name,
@@ -108,6 +125,7 @@ const Register = () => {
               className="form-control"
               id="exampleInputDOB1"
               placeholder="Enter Your DOB"
+              max={maxDate}
               required
             />
           </div>

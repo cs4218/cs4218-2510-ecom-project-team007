@@ -1,25 +1,35 @@
-import { useState,useEffect } from "react";
+import React, { useState,useEffect } from "react";
 import { useAuth } from "../../context/auth";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import axios from 'axios';
-import { set } from "mongoose";
 import Spinner from "../Spinner";
 
 export default function PrivateRoute(){
     const [ok,setOk] = useState(false)
     const [auth,setAuth] = useAuth()
+    const navigate = useNavigate();
 
     useEffect(()=> {
         const authCheck = async() => {
-            const res = await axios.get("/api/v1/auth/user-auth");
-            if(res.data.ok){
-                setOk(true);
-            } else {
-                setOk(false);
+            try {
+                const res = await axios.get("/api/v1/auth/user-auth");
+                if(res.data.ok){
+                    setOk(true);
+                } else {
+                    // unauthorized: clear auth & redirect
+                    setAuth({ user: null, token: "" });
+                    localStorage.removeItem("auth");
+                    navigate("/login");
+                }
+            } catch(err) {
+                // token expired or invalid: clear auth & redirect
+                setAuth({ user: null, token: "" });
+                localStorage.removeItem("auth");
+                navigate("/login");
             }
         };
         if (auth?.token) authCheck();
-    }, [auth?.token]);
+    }, [auth?.token, navigate, setAuth]);
 
     return ok ? <Outlet /> : <Spinner path=""/>;
 }

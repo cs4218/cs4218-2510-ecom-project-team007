@@ -23,6 +23,9 @@ import Categories from "./pages/Categories";
 import CategoryProduct from "./pages/CategoryProduct";
 import CartPage from "./pages/CartPage";
 import AdminOrders from "./pages/admin/AdminOrders";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import { Toaster } from "react-hot-toast";
+
 function App() {
   return (
     <>
@@ -49,11 +52,13 @@ function App() {
         </Route>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/policy" element={<Policy />} />
         <Route path="*" element={<Pagenotfound />} />
       </Routes>
+      <Toaster position="top-center" />
     </>
   );
 }
