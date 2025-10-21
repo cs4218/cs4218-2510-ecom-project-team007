@@ -1,6 +1,7 @@
 import fs from 'fs';
 import slugify from 'slugify';
 import productModel from '../models/productModel';
+import categoryModel from "../models/categoryModel";
 import { productSchema } from '../client/src/schemas/productSchema';
 import { validateProductPhoto } from '../client/src/utils/photoValidation';
 import {
@@ -13,18 +14,18 @@ import {
   productFiltersController,
   productCountController,
   productListController,
+  productCategoryController,
 } from './productController';
 
 jest.mock('fs');
 jest.mock('slugify');
 jest.mock('../models/productModel');
-
+jest.mock('../models/categoryModel');
 jest.mock('../client/src/schemas/productSchema', () => ({
   productSchema: {
     validate: jest.fn(),
   },
 }));
-
 jest.mock('../client/src/utils/photoValidation', () => ({
   validateProductPhoto: jest.fn(),
 }));
@@ -703,7 +704,10 @@ describe("Test productPhotoController", () => {
     expect(productModel.findById).toHaveBeenCalledWith(testPid);
     expect(res.set).toHaveBeenCalledWith("Content-type", "image/png");
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(testPhoto.data);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      data: testPhoto.data
+    });
   });
 
   it("Should handle empty requests (400)", async () => {
@@ -783,7 +787,14 @@ describe("Test productFiltersController", () => {
     const testchecked = ["category1"];
     req.body.checked = testchecked;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockResolvedValue(testProducts);
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -792,6 +803,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -799,7 +813,14 @@ describe("Test productFiltersController", () => {
     const testradio = [0, 20];
     req.body.radio = testradio;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockResolvedValue(testProducts);
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -808,6 +829,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -817,7 +841,14 @@ describe("Test productFiltersController", () => {
     req.body.checked = testchecked;
     req.body.radio = testradio;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockResolvedValue(testProducts);
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -829,12 +860,22 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
   it("Should not filter anything when neither are given (200)", async () => {
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockResolvedValue(testProducts);
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -843,6 +884,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -874,7 +918,13 @@ describe("Test productFiltersController", () => {
 
   it("Should handle errors (500)", async () => {
     const errorMessage = "DB query error";
-    productModel.find.mockRejectedValue(new Error(errorMessage));
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+    productModel.find.mockReturnValue(query);
 
     await productFiltersController(req, res);
 
@@ -1030,7 +1080,7 @@ describe("Test productListController", () => {
   });
 
   describe("Proper error handling when", () => {
-    it ("params field not included in request", async () => {
+    it("params field not included in request", async () => {
       await productListController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
@@ -1040,7 +1090,7 @@ describe("Test productListController", () => {
       });
     });
 
-    it ("invalid page value", async () => {
+    it("invalid page value", async () => {
       const req = { params: { page: -1 }};
 
       await productListController(req, res);
@@ -1052,7 +1102,7 @@ describe("Test productListController", () => {
       });
     });
 
-    it ("server error", async () => {
+    it("server error", async () => {
       req = { params: { page: 1 }};
       const errorMessage = "DB query error";
       productModel.find.mockImplementation(() => { throw new Error(errorMessage); });
@@ -1066,6 +1116,95 @@ describe("Test productListController", () => {
         error: errorMessage
       });
     });
+  });
+});
+
+
+describe("Test productCategoryController", () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    req = {params: {}};
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn()
+    }
+  });
+
+  it("should handle missing params in request", async () => {
+    req = {};
+
+    await productCategoryController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing request parameter for category slug"
+    });
+  });
+
+  it("should handle missing slug parameter in request", async () => {
+    await productCategoryController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Missing request parameter for category slug"
+    });
+  });
+
+  it("should handle non-existent requested category", async () => {
+    req.params.slug = "test-slug";
+    categoryModel.findOne.mockResolvedValue(undefined);
+
+    await productCategoryController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Requested category not found"
+    });
+  });
+
+  it("should call findOne with given slug", async () => {
+    req.params.slug = "category-slug";
+    categoryModel.findOne.mockResolvedValue(null);
+
+    await productCategoryController(req, res);
+
+    expect(categoryModel.findOne).toHaveBeenCalledWith({slug: "category-slug"});
+  });
+
+  it("should successfully return both category and products", async () => {
+    req.params.slug = "category-slug";
+    categoryModel.findOne.mockResolvedValue("category");
+    productModel.find.mockReturnValue({
+      populate: jest.fn().mockReturnThis(),
+      select: jest.fn().mockResolvedValue("products")
+    });
+
+    await productCategoryController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      category: "category",
+      products: "products"
+    });
+  });
+
+  it("should call find with found category", async () => {
+    req.params.slug = "category-slug";
+    categoryModel.findOne.mockResolvedValue("category");
+    productModel.find.mockReturnValue({
+      populate: jest.fn().mockReturnThis(),
+      select: jest.fn().mockResolvedValue("products")
+    });
+
+    await productCategoryController(req, res);
+
+    expect(productModel.find).toHaveBeenCalledWith({category: "category"});
   });
 });
 
