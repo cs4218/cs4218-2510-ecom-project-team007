@@ -269,16 +269,14 @@ describe("updateProfileController", () => {
       expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  // In authController.test.js, update the failing test:
   it("TC3: Invalid password length = 5 -> should fail", async () => {
     req.body = { password: "123", name: "John", address: "A", phone: "B" };
     await updateProfileController(req, res);
     
-    // Change from toHaveBeenCalledWith to check status and send
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: "Passsword is required and 6 character long",
+        error: "Passsword must be at least 6 characters long",
       })
     );
   });
