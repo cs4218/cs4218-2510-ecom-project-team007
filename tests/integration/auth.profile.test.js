@@ -35,11 +35,9 @@ beforeEach(async () => {
 });
 
 describe('PUT /api/v1/auth/profile', () => {
-    it('updates user profile and return the updated user data', async () => {
+    it('updates user name and return the updated user data', async () => {
         const updatedData = {
             name: 'Alena Updated',
-            phone: '12345678',
-            address: 'New Updated Address 456',
         };
 
         const response = await request(app)
@@ -50,6 +48,70 @@ describe('PUT /api/v1/auth/profile', () => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(response.body.updatedUser.name).toBe(updatedData.name);
+    });
+
+    it('updates user phone and return the updated user data', async () => {
+        const updatedData = {
+            phone: '91234567',
+        };
+
+        const response = await request(app)
+            .put('/api/v1/auth/profile')
+            .set('Authorization', userToken)
+            .send(updatedData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.updatedUser.phone).toBe(updatedData.phone);
+    });
+
+    it('updates user address and return the updated user data', async () => {
+        const updatedData = {
+            address: 'New test address 999',
+        };
+
+        const response = await request(app)
+            .put('/api/v1/auth/profile')
+            .set('Authorization', userToken)
+            .send(updatedData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.updatedUser.address).toBe(updatedData.address);
+    });
+
+    it('updates user email and return the updated user data', async () => {
+        const updatedData = {
+            email: 'newtestemail@email.com',
+        };
+
+        const response = await request(app)
+            .put('/api/v1/auth/profile')
+            .set('Authorization', userToken)
+            .send(updatedData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.updatedUser.email).toBe(updatedData.email);
+    });
+
+    it('updates the password and hash it correctly', async () => {
+        const newPassword = 'newPassword456';
+        const profileUpdateWithPassword = {
+            password: newPassword,
+        };
+
+        const response = await request(app)
+            .put('/api/v1/auth/profile')
+            .set('Authorization', userToken)
+            .send(profileUpdateWithPassword);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+
+        const userInDb = await User.findById(testUser._id);
+        const isMatch = await bcrypt.compare(newPassword, userInDb.password);
+        expect(isMatch).toBe(true);
     });
 
     it('returns 401 Unauthorized if no token is provided', async () => {
@@ -83,24 +145,5 @@ describe('PUT /api/v1/auth/profile', () => {
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(response.body.updatedUser.name).toBe(testUser.name);
-    });
-
-    it('updates the password and hash it correctly', async () => {
-        const newPassword = 'newPassword456';
-        const profileUpdateWithPassword = {
-            password: newPassword,
-        };
-
-        const response = await request(app)
-            .put('/api/v1/auth/profile')
-            .set('Authorization', userToken)
-            .send(profileUpdateWithPassword);
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-
-        const userInDb = await User.findById(testUser._id);
-        const isMatch = await bcrypt.compare(newPassword, userInDb.password);
-        expect(isMatch).toBe(true);
     });
 });
