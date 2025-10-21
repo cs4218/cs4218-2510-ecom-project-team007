@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -33,6 +34,7 @@ const productSchema = new mongoose.Schema(
     },
     shipping: {
       type: Boolean,
+      required: true,
     },
   },
   { timestamps: true }

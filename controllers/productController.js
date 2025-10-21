@@ -181,7 +181,6 @@ export const getProductController = async (req, res) => {
       .find({})
       .populate("category")
       .select("-photo.data")
-      .limit(12)
       .sort({ createdAt: -1 });
 
     res.status(200).send({
@@ -257,7 +256,7 @@ export const productPhotoController = async (req, res) => {
     }
     
     res.set("Content-type", product.photo.contentType);
-    return res.status(200).send(product.photo.data);
+    return res.status(200).send({ success: true, data: product.photo.data });
 
   } catch (error) {
     console.log(error);
@@ -285,18 +284,15 @@ export const productFiltersController = async (req, res) => {
     if (radio && radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
 
     const perPage = 6;
-    
-    // Get total count of filtered products
-    const total = await productModel.countDocuments(args);
-    
-    // Get paginated filtered products
+    const total = await productModel.countDocuments(args);  // total count of filtered products
+
     const products = await productModel
       .find(args)
       .select("-photo.data")
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ createdAt: -1 });
-
+    
     res.status(200).send({
       success: true,
       products,
@@ -419,22 +415,34 @@ export const realtedProductController = async (req, res) => {
   }
 };
 
-// get prdocyst by catgory
+// get product by category
 export const productCategoryController = async (req, res) => {
   try {
+    if (!req.params || !req.params.slug)
+      return res.status(400).send({
+        success: false,
+        message: "Missing request parameter for category slug"
+      });
+
     const category = await categoryModel.findOne({ slug: req.params.slug });
-    const products = await productModel.find({ category }).populate("category");
-    res.status(200).send({
-      success: true,
-      category,
-      products,
-    });
+    if (!category)
+      return res.status(404).send({
+        success: false,
+        message: "Requested category not found"
+      });
+
+    const products = await productModel.find({ category })
+                        .populate("category")
+                        .select("-photo.data");
+
+    res.status(200).send({ success: true, category, products });
+
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      error,
-      message: "Error While Getting products",
+      message: "Error while getting products via category",
+      error: error.message,
     });
   }
 };
