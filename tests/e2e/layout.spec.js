@@ -1,21 +1,16 @@
-// tests/e2e/layout.spec.js
 const { test, expect } = require('@playwright/test');
 
 test.describe('Layout Component Integration Tests', () => {
     test.beforeEach(async ({ page }) => {
-        // Start from home page before each test
         await page.goto('http://localhost:3000');
     });
 
     test.describe('Layout Component Flow', () => {
         test('should render Header, children content, and Footer together', async ({ page }) => {
-            // Verify header is present
             const header = page.locator('header, nav').first();
             await expect(header).toBeVisible();
-            // Verify main content area is present
             const mainContent = page.locator('main');
             await expect(mainContent).toBeVisible();
-            // Verify footer is present
             const footer = page.locator('footer');
             await expect(footer).toBeVisible();
             // Verify they appear in correct order
@@ -170,7 +165,7 @@ test.describe('Layout Component Integration Tests', () => {
         test('should transition successfully from Home page to About page', async ({ page }) => {
             const homePageUrl = 'http://localhost:3000/';
             const aboutLinkLocator = 'text=About';
-            const fallbackAboutLink = 'a[href="/about"]'; // For robustness
+            const fallbackAboutLink = 'a[href="/about"]';
             await page.goto(homePageUrl);
             await expect(page).toHaveURL(homePageUrl);
             await page.click(aboutLinkLocator).catch(() => page.click(fallbackAboutLink));
@@ -180,9 +175,9 @@ test.describe('Layout Component Integration Tests', () => {
         test('should transition successfully from About page to Policy page', async ({ page }) => {
             const aboutPageUrl = 'http://localhost:3000/about';
             const policyLinkLocator = 'text=Policy';
-            const fallbackPolicyLink = 'a[href="/policy"]'; // For robustness
+            const fallbackPolicyLink = 'a[href="/policy"]';
             await page.goto(aboutPageUrl);
-            await expect(page).toHaveURL(/.*about/); // Ensure we landed on About
+            await expect(page).toHaveURL(/.*about/);
             await page.click(policyLinkLocator).catch(() => page.click(fallbackPolicyLink));
             await expect(page).toHaveURL(/.*policy/);
         });
