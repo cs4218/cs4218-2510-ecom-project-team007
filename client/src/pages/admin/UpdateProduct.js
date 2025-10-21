@@ -167,11 +167,14 @@ const UpdateProduct = () => {
 
             <div className="m-1 w-75">
               <Select
-                variant="borderless"
                 placeholder="Select a category"
+                variant="borderless"
                 size="large"
-                showSearch
                 className="form-select mb-3"
+                showSearch
+                filterOption={(input, option) =>
+                  option.label.toLowerCase().includes(input.toLowerCase())
+                }
                 value={category}
                 onChange={(value) => setCategory(value)}
                 options={categories?.map((category) => ({
@@ -257,10 +260,9 @@ const UpdateProduct = () => {
 
               <div className="mb-3">
                 <Select
-                  variant="borderless"
                   placeholder="Select shipping"
+                  variant="borderless"
                   size="large"
-                  showSearch
                   className="form-select mb-3"
                   value={shipping}
                   onChange={(value) => setShipping(value)}

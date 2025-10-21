@@ -117,11 +117,15 @@ const CreateProduct = () => {
 
             <div className="m-1 w-75">
               <Select
-                variant="borderless"
+                data-testid="category-select"
                 placeholder="Select a category"
+                variant="borderless"
                 size="large"
-                showSearch
                 className="form-select mb-3"
+                showSearch
+                filterOption={(input, option) =>
+                  option.label.toLowerCase().includes(input.toLowerCase())
+                }
                 onChange={(value) => setCategory(value)}
                 options={categories?.map((category) => ({
                   label: category.name,
@@ -131,7 +135,7 @@ const CreateProduct = () => {
 
               <div className="mb-3">
                 <label className="btn btn-outline-secondary col-md-12">
-                  {photo ? photo.name : "Upload photo"}
+                  {photo ? photo.name : 'Upload photo'}
                   <input
                     type="file"
                     name="photo"
@@ -199,10 +203,10 @@ const CreateProduct = () => {
 
               <div className="mb-3">
                 <Select
-                  variant="borderless"
+                  data-testid="shipping-select"
                   placeholder="Select shipping"
+                  variant="borderless"
                   size="large"
-                  showSearch
                   className="form-select mb-3"
                   onChange={(value) => setShipping(value)}
                   options={[

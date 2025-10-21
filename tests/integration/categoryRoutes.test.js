@@ -145,7 +145,7 @@ describe('Category Routes Integration Tests', () => {
       expect(body.message).toBe('Category not found');
     });
 
-    it('returns 409 error when the new category name already exists', async () => {
+    it('returns 409 error when the updated category name already exists', async () => {
       const response = await createCategoryRequest().expect(201);
       const id = response.body.category._id;
 
