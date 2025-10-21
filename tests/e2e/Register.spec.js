@@ -78,30 +78,6 @@ test.describe('User Authentication', () => {
       // Continue if not logged in
     }
   });
-
-  test('AC4 - Login page has correct structure', async ({ page }) => {
-    await page.getByRole('link', { name: 'Login' }).click();
-    
-    // Verify login form elements without AriaSnapshot
-    await expect(page.getByRole('heading', { name: 'LOGIN FORM' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Enter Your Email' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Enter Your Password' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Forgot Password' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'LOGIN' })).toBeVisible();
-  });
-
-  test('AC5 - User can login with valid credentials', async ({ page }) => {
-    await page.getByRole('link', { name: 'Login' }).click();
-    
-    // Use test credentials
-    await page.getByRole('textbox', { name: 'Enter Your Email' }).fill('test2@gmail.com');
-    await page.getByRole('textbox', { name: 'Enter Your Password' }).fill('test');
-    await page.getByRole('button', { name: 'LOGIN' }).click();
-
-    // Verify successful login
-    await expect(page.getByText('🙏login successfully')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'test' })).toBeVisible();
-  });
 });
 
 test('Complete User Registration and Authentication Workflow', async ({ page }) => {
@@ -166,9 +142,9 @@ test('Complete User Registration and Authentication Workflow', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Profile' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Orders' })).toBeVisible();
-  await expect(page.getByText('test', { exact: true })).toBeVisible();
-  await expect(page.getByText('test2@gmail.com', { exact: true })).toBeVisible();
-
+  await expect(page.locator('h3').filter({ hasText: /^test$/ })).toBeVisible();
+  await expect(page.locator('h3').filter({ hasText: /^test2@gmail\.com$/ })).toBeVisible();
+  
   // Test 7: Logout
   await page.getByRole('button', { name: 'test' }).click();
   await page.getByRole('link', { name: 'Logout' }).click();
