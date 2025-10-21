@@ -787,9 +787,14 @@ describe("Test productFiltersController", () => {
     const testchecked = ["category1"];
     req.body.checked = testchecked;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockReturnValue({
-      select: jest.fn().mockResolvedValue(testProducts)
-    });
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -798,6 +803,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -805,9 +813,14 @@ describe("Test productFiltersController", () => {
     const testradio = [0, 20];
     req.body.radio = testradio;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockReturnValue({
-      select: jest.fn().mockResolvedValue(testProducts)
-    });
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -816,6 +829,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -825,9 +841,14 @@ describe("Test productFiltersController", () => {
     req.body.checked = testchecked;
     req.body.radio = testradio;
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockReturnValue({
-      select: jest.fn().mockResolvedValue(testProducts)
-    });
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -839,14 +860,22 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
   it("Should not filter anything when neither are given (200)", async () => {
     const testProducts = [{name: "product1"}, {name: "product2"}];
-    productModel.find.mockReturnValue({
-      select: jest.fn().mockResolvedValue(testProducts)
-    });
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockResolvedValue(testProducts),
+    };
+    productModel.find.mockReturnValue(query);
+    productModel.countDocuments.mockResolvedValue(testProducts.length);
 
     await productFiltersController(req, res);
 
@@ -855,6 +884,9 @@ describe("Test productFiltersController", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       products: testProducts,
+      total: 2,
+      page: 1,
+      pages: 1
     });
   });
 
@@ -886,9 +918,13 @@ describe("Test productFiltersController", () => {
 
   it("Should handle errors (500)", async () => {
     const errorMessage = "DB query error";
-    productModel.find.mockReturnValue({
-      select: jest.fn().mockRejectedValue(new Error(errorMessage))
-    });
+    const query = {
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+    productModel.find.mockReturnValue(query);
 
     await productFiltersController(req, res);
 

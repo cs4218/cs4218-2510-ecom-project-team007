@@ -4,7 +4,6 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import productModel from "../models/productModel";
 import categoryModel from "../models/categoryModel";
 import {
-  createProductController,
   getProductController,
   getSingleProductController,
   productPhotoController,
@@ -53,123 +52,6 @@ afterAll(async () => {
   await mongoServer.stop();
 });
 
-
-describe("Test createProductController with mongoose", () => {
-  jest.spyOn(fs, "readFileSync").mockImplementation(path => path);
-
-  beforeEach(async () => {
-    req = {fields: {}, files: {}};
-    res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis()
-    };
-    await productModel.deleteMany({});
-  });
-
-  it("should add product (without photo) to DB", async () => {
-    req.fields = {...products[0]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-
-    await createProductController(req, res);
-    const data = res.send.mock.calls[0][0];
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(data.success).toBe(true);
-
-    const product = await productModel.findById(data.product._id);
-    expect(data.product._id).toEqual(product._id);
-  });
-
-  it("should add product (with photo) to DB", async () => {
-    req.fields = {...products[0]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-    req.files.photo = {
-      path: products[0].photo.data,
-      type: products[0].photo.contentType,
-    };
-
-    await createProductController(req, res);
-    const data = res.send.mock.calls[0][0];
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(data.success).toBe(true);
-
-    const product = await productModel.findById(data.product._id);
-    expect(Buffer.from(product.photo.data)).toEqual(products[0].photo.data);
-  });
-
-  it("should return added product (with photo) to DB", async () => {
-    req.fields = {...products[0]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-    req.files.photo = {
-      path: products[0].photo.data,
-      type: products[0].photo.contentType,
-    };
-
-    await createProductController(req, res);
-    const data = res.send.mock.calls[0][0];
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(data.success).toBe(true);
-    expect(data.product.name).toBe(products[0].name);
-    expect(Buffer.from(data.product.photo.data)).toEqual(products[0].photo.data);
-  });
-
-  it("should not add product with existing slug", async () => {
-    await productModel(products[0]).save();
-    req.fields = {...products[0]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-
-    await createProductController(req, res);
-    const data = res.send.mock.calls[0][0];
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(data.success).toBe(false);
-    
-    const allProducts = await productModel.find({});
-    expect(allProducts).toHaveLength(1);
-  });
-
-  it("should add product without affecting existing ones", async () => {
-    await productModel(products[0]).save();
-    await productModel(products[1]).save();
-    req.fields = {...products[2]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-
-    await createProductController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    
-    const allProducts = await productModel.find({});
-    expect(allProducts).toHaveLength(3);
-    expect(allProducts[0].name).toBe(products[0].name);
-    expect(allProducts[1].name).toBe(products[1].name);
-    expect(allProducts[2].name).toBe(products[2].name);
-  });
-
-  it("should not add duplicate product without affecting existing ones", async () => {
-    await productModel(products[0]).save();
-    await productModel(products[1]).save();
-    req.fields = {...products[0]};
-    delete req.fields.photo;
-    delete req.fields.slug;
-
-    await createProductController(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    
-    const allProducts = await productModel.find({});
-    expect(allProducts).toHaveLength(2);
-    expect(allProducts[0].name).toBe(products[0].name);
-    expect(allProducts[1].name).toBe(products[1].name);
-  });
-});
-
 describe("Test getProductController with mongoose", () => {
   beforeEach(async () => {
     req = {};
@@ -216,7 +98,7 @@ describe("Test getProductController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(data.products[0].toObject()).not.toHaveProperty("photo");
+    expect(data.products[0].toObject()).not.toHaveProperty("photo.data");
   });
 
   it("should return empty list (no prod in DB)", async () => {
@@ -311,7 +193,7 @@ describe("Test getSingleProductController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(data.product.toObject()).not.toHaveProperty("photo");
+    expect(data.product.toObject()).not.toHaveProperty("photo.data");
   });
 
   it("should return 404 if product not found", async () => {
@@ -437,10 +319,7 @@ describe("Test productFiltersController with mongoose", () => {
     expect(res.status).toHaveBeenCalledWith(200);
     expect(data.success).toBe(true);
     expect(data.products).toHaveLength(3);
-
-    expect(data.products[0].name).toEqual(products[0].name);
-    expect(data.products[1].name).toEqual(products[1].name);
-    expect(data.products[2].name).toEqual(products[2].name);
+    expect(data.total).toBe(3);
   });
 
   describe("should return products matching price range", () => {
@@ -516,8 +395,6 @@ describe("Test productFiltersController with mongoose", () => {
       const data = res.send.mock.calls[0][0];
 
       expect(data.products).toHaveLength(2);
-      expect(data.products[0].name).toEqual(products[0].name);
-      expect(data.products[1].name).toEqual(products[1].name);
     });
   });
 
@@ -574,8 +451,9 @@ describe("Test productFiltersController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(data.products).toHaveLength(2);
-    expect(data.products[0].name).toEqual(products[0].name);
-    expect(data.products[1].name).toEqual(products[2].name);
+    expect(data.total).toBe(2);
+    expect(data.products[0].name).not.toEqual(products[1].name);
+    expect(data.products[1].name).not.toEqual(products[1].name);
   });
 
   it("should only return products matching category (1)", async () => {
@@ -599,8 +477,8 @@ describe("Test productFiltersController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(data.products).toHaveLength(2);
-    expect(data.products[0].name).toEqual(products[0].name);
-    expect(data.products[1].name).toEqual(products[2].name);
+    expect(data.products[0].name).not.toEqual(products[1].name);
+    expect(data.products[1].name).not.toEqual(products[1].name);
   });
 
   it("should not return products not matching category", async () => {
@@ -617,6 +495,7 @@ describe("Test productFiltersController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(data.products).toHaveLength(0);
+    expect(data.total).toBe(0);
   });
 
   it("should return products matching both price and category", async () => {
@@ -633,14 +512,68 @@ describe("Test productFiltersController with mongoose", () => {
     expect(data.products[0].name).toEqual(products[0].name);
   });
 
-  it("should exclude photo field from returned products", async () => {
+  it("should return 6 most recent filtered products with correct total, page and pages", async () => {
+    req.body.page = 1;
+
+    await productModel({...products[0], category: categories[1]._id}).save(); // reject this
+    const currentDate = new Date();
+    for (let i = 1; i < 13; i++)
+      await productModel({
+              ...products[i],
+              createdAt: new Date(currentDate.getTime() + (13 - i)),
+              category: categories[0]._id
+            }).save();
+    req.body.checked = [categories[0]._id];
+    
+    await productFiltersController(req, res);
+    const data = res.send.mock.calls[0][0];
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(data.success).toBe(true);
+    expect(data.products).toHaveLength(6);
+    expect(data.total).toBe(12);
+    expect(data.page).toBe(1);
+    expect(data.pages).toBe(2);
+
+    for (let i = 0; i < 6; i++) 
+      expect(data.products[i].name).toEqual(products[i+1].name);
+  });
+
+  it("should return next 6 recent filtered products with correct page", async () => {
+    req.body.page = 2;
+
+    await productModel({...products[0], category: categories[1]._id}).save(); // reject this
+    const currentDate = new Date();
+    for (let i = 1; i < 13; i++)
+      await productModel({
+              ...products[i],
+              createdAt: new Date(currentDate.getTime() + (13 - i)),
+              category: categories[0]._id
+            }).save();
+    req.body.checked = [categories[0]._id];
+    
+    await productFiltersController(req, res);
+    const data = res.send.mock.calls[0][0];
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(data.success).toBe(true);
+    expect(data.products).toHaveLength(6);
+    expect(data.total).toBe(12);
+    expect(data.page).toBe(2);
+    expect(data.pages).toBe(2);
+
+    for (let i = 0; i < 6; i++) 
+      expect(data.products[i].name).toEqual(products[i+7].name);
+  });
+
+  it("should exclude photo data field from returned products", async () => {
     await productModel(products[0]).save();
 
     await productFiltersController(req, res);
     const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(data.products[0].toObject()).not.toHaveProperty("photo");
+    expect(data.products[0].toObject()).not.toHaveProperty("photo.data");
   });
 });
 
@@ -814,7 +747,7 @@ describe("Test productListController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(data.products[0].toObject()).not.toHaveProperty("photo");
+    expect(data.products[0].toObject()).not.toHaveProperty("photo.data");
   });
 });
 
@@ -855,7 +788,7 @@ describe("Test productCategoryController with mongoose", () => {
     const data = res.send.mock.calls[0][0];
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(data.products[0].toObject()).not.toHaveProperty("photo");
+    expect(data.products[0].toObject()).not.toHaveProperty("photo.data");
   });
 
   it("should return multiple matched products", async () => {

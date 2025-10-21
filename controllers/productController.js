@@ -180,7 +180,7 @@ export const getProductController = async (req, res) => {
     const products = await productModel
       .find({})
       .populate("category")
-      .select("-photo")
+      .select("-photo.data")
       .sort({ createdAt: -1 });
 
     res.status(200).send({
@@ -283,7 +283,16 @@ export const productFiltersController = async (req, res) => {
     if (checked && checked.length > 0) args.category = checked;
     if (radio && radio.length === 2) args.price = { $gte: radio[0], $lte: radio[1] };
 
-    const products = await productModel.find(args).select("-photo");
+    const perPage = 6;
+    const total = await productModel.countDocuments(args);  // total count of filtered products
+
+    const products = await productModel
+      .find(args)
+      .select("-photo.data")
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .sort({ createdAt: -1 });
+    
     res.status(200).send({
       success: true,
       products,
@@ -424,7 +433,7 @@ export const productCategoryController = async (req, res) => {
 
     const products = await productModel.find({ category })
                         .populate("category")
-                        .select("-photo");
+                        .select("-photo.data");
 
     res.status(200).send({ success: true, category, products });
 
