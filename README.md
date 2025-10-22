@@ -413,8 +413,17 @@ View our GitHub Actions workflow run [here](https://github.com/cs4218/cs4218-251
     </tr>
     <tr>
       <td>Yun Ru (<a href="https://github.com/yunruu">@yunruu</a>)</td>
-      <td></td>
-      <td></td>
+      <td>
+        - <code>auth.profile.test.js</code><br />
+        - <code>categoryModel.int.test.js</code><br />
+        - <code>categoryController.int.test.js</code>
+      </td>
+      <td>
+        - <code>adminRoute.spec.js</code><br />
+        - <code>categoryFlow.spec.js</code><br />
+        - <code>layout.spec.js</code><br />
+        - <code>noAuthRoute.spec.js</code><br />
+      </td>
     </tr>
   </tbody>
 </table>
