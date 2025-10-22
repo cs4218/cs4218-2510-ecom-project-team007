@@ -19,7 +19,7 @@ beforeEach(async () => {
 
 describe('Category Model Integration', () => {
     /**
-     * Test Case 1: (Create) Should successfully create a new category if data is valid.
+     * (Create) Should successfully create a new category if data is valid.
      */
     it('should create and save a new category successfully', async () => {
         const categoryData = {
@@ -33,7 +33,7 @@ describe('Category Model Integration', () => {
     });
 
     /**
-     * Test Case 2: (Read) Should find a category by its slug.
+     * (Read) Should find a category by its slug.
      */
     it('should find a category correctly', async () => {
         const categoryData = { name: 'Books', slug: 'books' };
@@ -44,7 +44,7 @@ describe('Category Model Integration', () => {
     });
 
     /**
-     * Test Case 3 (Validation): Should fail to create a category without a required 'name' field.
+     * (Validation): Should fail to create a category without a required 'name' field.
      */
     it('should fail if a required field (name) is missing', async () => {
         const categoryData = { slug: 'missing-name' }; // Missing the 'name' field
@@ -59,7 +59,7 @@ describe('Category Model Integration', () => {
     });
 
     /**
-     * Test 4 (Update): Should update a category's name.
+     * (Update): Should update a category's name.
      */
     it('should update a category successfully', async () => {
         const originalCategory = await Category.create({ name: 'Fashion', slug: 'fashion' });
@@ -74,7 +74,7 @@ describe('Category Model Integration', () => {
     });
 
     /**
-     * Test 5 (Delete): Should delete a category successfully.
+     * (Delete): Should delete a category successfully.
      */
     it('should delete a category successfully', async () => {
         const categoryToDelete = await Category.create({ name: 'Home Goods', slug: 'home-goods' });
@@ -84,7 +84,7 @@ describe('Category Model Integration', () => {
     });
 
     /**
-     * Test 6 (Uniqueness): Should fail if a category with a unique field (name/slug) already exists.
+     * (Uniqueness): Should fail if a category with a unique field (name/slug) already exists.
      */
     it('should fail to create a category with a non-unique name', async () => {
         const categoryData = { name: 'Gaming', slug: 'gaming' };
