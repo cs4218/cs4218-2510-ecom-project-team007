@@ -352,273 +352,69 @@ View our GitHub Actions workflow run [here](https://github.com/cs4218/cs4218-251
 
 ## Milestone 2
 
-### Integration Test Contributions
+### Contributions
 
 <table>
   <thead>
     <tr>
       <th>Name</th>
-      <th>Features</th>
-      <th>Client Related Files (<code>/client/src/</code>)</th>
-      <th>Server Related Files (<code>./</code>)</th>
+      <th>Integration Tests</th>
+      <th>UI Tests</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td rowspan="4">Benjamin (<a href="https://github.com/benjiBase">@benjiBase</a>)</td>
-      <td>Protected Routes</td>
-      <td>- <code>context/auth.js</code></td>
+      <td>Benjamin (<a href="https://github.com/benjiBase">@benjiBase</a>)</td>
       <td>
-        - <code>helpers/authHelper.js</code><br />
-        - <code>middlewares/authMiddleware.js</code>
+        - <code>authController.int.test.js</code>
       </td>
-    </tr>
-    <tr>
-      <td>Registration</td>
-      <td>- <code>pages/Auth/Register.js</code></td>
-      <td rowspan="2">
-        - <code>controllers/authController.js</code><br />
-        &nbsp;&nbsp;1. <code>registerController</code><br />
-        &nbsp;&nbsp;2. <code>loginController</code><br />
-        &nbsp;&nbsp;3. <code>forgotPasswordController</code><br />
-        &nbsp;&nbsp;4. <code>testController</code>
-      </td>
-    </tr>
-    <tr>
-      <td>Login</td>
-      <td>- <code>pages/Auth/Login.js</code></td>
-    </tr>
-    <tr>
-      <td>General</td>
       <td>
-        - <code>components/Routes/Private.js</code><br />
-        - <code>components/UserMenu.js</code><br />
-        - <code>pages/user/Dashboard.js</code>
+        - <code>Login.spec.js</code><br />
+        - <code>ForgotPassword.spec.js</code><br />
+        - <code>Register.spec.js</code>
       </td>
-      <td>- <code>models/userModel.js</code></td>
     </tr>
     <tr>
-      <td rowspan="4">Clement (<a href="https://github.com/Gra7ityIC3">@Gra7ityIC3</a>)</td>
-      <td>Admin Dashboard</td>
+      <td>Clement (<a href="https://github.com/Gra7ityIC3">@Gra7ityIC3</a>)</td>
       <td>
-        - <code>components/AdminMenu.js</code><br />
-        - <code>pages/admin/AdminDashboard.js</code>
+        - <code>categoryRoutes.test.js</code><br />
+        - <code>productRoutes.test.js</code>
       </td>
+      <td>
+        - <code>categories.spec.js</code><br />
+        - <code>products.spec.js</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Wei Nian (<a href="https://github.com/hweinian">@hweinian</a>)</td>
+      <td>
+        - <code>order.test.js</code><br />
+        - <code>home.test.js</code><br />
+        - <code>payment.test.js</code>
+      </td>
+      <td>
+        - <code>Cart.spec.js</code><br />
+        - <code>homepage.spec.js</code><br />
+        - <code>Payment.spec.js</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Chan How (<a href="https://github.com/ChillinRage">@ChillinRage</a>)</td>
+      <td>
+        - <code>Contact.int.test.js</code><br />
+        - <code>Policy.int.test.js</code><br />
+        - <code>productRoutes.int.test.js</code><br />
+        - <code>productController.int.test.js</code>
+      </td>
+      <td>
+        - <code>HelpSupport.spec.js</code><br />
+        - <code>CategoryProductPage.spec.js</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Yun Ru (<a href="https://github.com/yunruu">@yunruu</a>)</td>
       <td></td>
-    </tr>
-    <tr>
-      <td>Admin Actions</td>
-      <td>
-        - <code>components/Form/CategoryForm.js</code><br />
-        - <code>pages/admin/CreateCategory.js</code><br />
-        - <code>pages/admin/CreateProduct.js</code><br />
-        - <code>pages/admin/UpdateProduct.js</code>
-      </td>
-      <td>
-        - <code>controllers/categoryController.js</code><br />
-        &nbsp;&nbsp;1. <code>createCategoryController</code><br />
-        &nbsp;&nbsp;2. <code>updateCategoryController</code><br />
-        &nbsp;&nbsp;3. <code>deleteCategoryController</code>
-      </td>
-    </tr>
-    <tr>
-      <td>Admin View Orders</td>
-      <td>- <code>pages/admin/AdminOrders.js</code></td>
       <td></td>
-    </tr>
-    <tr>
-      <td>Admin View Products</td>
-      <td>- <code>pages/admin/Products.js</code></td>
-      <td>
-        - <code>controllers/productController.js</code><br />
-        &nbsp;&nbsp;1. <code>createProductController</code><br />
-        &nbsp;&nbsp;2. <code>updateProductController</code><br />
-        &nbsp;&nbsp;3. <code>deleteProductController</code>
-      </td>
-    </tr>
-    <tr>
-      <td rowspan="5">Wei Nian (<a href="https://github.com/hweinian">@hweinian</a>)</td>
-      <td>Order</td>
-      <td>- <code>pages/user/Orders.js</code></td>
-      <td>
-        - <code>controllers/authController.js</code><br />
-        &nbsp;&nbsp;1. <code>updateProfileController</code><br />
-        &nbsp;&nbsp;2. <code>getOrdersController</code><br />
-        &nbsp;&nbsp;3. <code>getAllOrdersController</code><br />
-        &nbsp;&nbsp;4. <code>orderStatusController</code><br />
-        - <code>models/orderModel.js</code>
-      </td>
-    </tr>
-    <tr>
-      <td>Payment</td>
-      <td></td>
-      <td>
-        - <code>controllers/productController.js</code><br />
-        &nbsp;&nbsp;1. <code>braintreeTokenController</code><br />
-        &nbsp;&nbsp;2. <code>brainTreePaymentController</code>
-      </td>
-    </tr>
-    <tr>
-      <td>Cart</td>
-      <td>
-        - <code>context/cart.js</code><br />
-        - <code>pages/CartPage.js</code>
-      </td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Search</td>
-      <td>
-        - <code>components/Form/SearchInput.js</code><br />
-        - <code>context/search.js</code><br />
-        - <code>pages/Search.js</code>
-      </td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Home</td>
-      <td>- <code>pages/Homepage.js</code></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td rowspan="3">Chan How (<a href="https://github.com/ChillinRage">@ChillinRage</a>)</td>
-      <td>Category Product Page</td>
-      <td></td>
-      <td>
-        - <code>controllers/productController.js</code><br />
-        &nbsp;&nbsp;1. <code>getProductController</code><br />
-        &nbsp;&nbsp;2. <code>getSingleProductController</code><br />
-        &nbsp;&nbsp;3. <code>productPhotoController</code><br />
-        &nbsp;&nbsp;4. <code>productFiltersController</code><br />
-        &nbsp;&nbsp;5. <code>productCountController</code><br />
-        &nbsp;&nbsp;6. <code>productListController</code><br />
-        &nbsp;&nbsp;9. <code>productCategoryController</code><br />
-        - <code>routes/productRoutes.js</code><br />
-      </td>
-    </tr>
-    <tr>
-      <td>Contact</td>
-      <td>- <code>pages/Contact.js</code></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Policy</td>
-      <td>- <code>pages/Policy.js</code></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td rowspan="4">Yun Ru (<a href="https://github.com/yunruu">@yunruu</a>)</td>
-      <td>General</td>
-      <td>
-        - <code>components/Footer.js</code><br />
-        - <code>components/Header.js</code><br />
-        - <code>components/Layout.js</code><br />
-        - <code>components/Spinner.js</code><br />
-        - <code>pages/About.js</code><br />
-        - <code>pages/Pagenotfound.js</code>
-      </td>
-      <td>- <code>config/db.js</code></td>
-    </tr>
-    <tr>
-      <td>Profile</td>
-      <td>- <code>pages/user/Profile.js</code></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Category</td>
-      <td>
-        - <code>hooks/useCategory.js</code><br />
-        - <code>pages/Categories.js</code>
-      </td>
-      <td>
-        - <code>controllers/categoryController.js</code><br />
-        &nbsp;&nbsp;1. <code>categoryController</code><br />
-        &nbsp;&nbsp;2. <code>singleCategoryController</code><br />
-        - <code>models/categoryModel.js</code>
-      </td>
-    </tr>
-    <tr>
-      <td>Admin View Users</td>
-      <td>- <code>pages/admin/Users.js</code></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
-
-### UI Test Contributions
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Features</th>
-      <th>Test Files (<code>test/e2e/</code>)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="4">Benjamin (<a href="https://github.com/benjiBase">@benjiBase</a>)</td>
-      <td>Protected Routes</td>
-    </tr>
-    <tr>
-      <td>Registration</td>
-    </tr>
-    <tr>
-      <td>Login</td>
-    </tr>
-    <tr>
-      <td>General</td>
-    </tr>
-    <tr>
-      <td rowspan="4">Clement (<a href="https://github.com/Gra7ityIC3">@Gra7ityIC3</a>)</td>
-      <td>Admin Dashboard</td>
-    </tr>
-    <tr>
-      <td>Admin Actions</td>
-    </tr>
-    <tr>
-      <td>Admin View Orders</td>
-    </tr>
-    <tr>
-      <td>Admin View Products</td>
-    </tr>
-    <tr>
-      <td rowspan="5">Wei Nian (<a href="https://github.com/hweinian">@hweinian</a>)</td>
-      <td>Order</td>
-    </tr>
-    <tr>
-      <td>Payment</td>
-    </tr>
-    <tr>
-      <td>Cart</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Search</td>
-    </tr>
-    <tr>
-      <td>Home</td>
-    </tr>
-    <tr>
-      <td rowspan="2">Chan How (<a href="https://github.com/ChillinRage">@ChillinRage</a>)</td>
-      <td>Contact & Policy</td>
-      <td> <code>HelpSupport.spec.js<code> </td>
-    </tr>
-    <tr>
-      <td>Category Product</td>
-      <td> <code>CategoryProductPage.spec.js<code> </td>
-    </tr>
-    <tr>
-      <td rowspan="4">Yun Ru (<a href="https://github.com/yunruu">@yunruu</a>)</td>
-      <td>General</td>
-    </tr>
-    <tr>
-      <td>Profile</td>
-    </tr>
-    <tr>
-      <td>Category</td>
-    </tr>
-    <tr>
-      <td>Admin View Users</td>
     </tr>
   </tbody>
 </table>
