@@ -18,5 +18,8 @@ playwright-report/
 test-results/
 tests/e2e/.auth/
 
+# Performance testing
+tests/performance/results/
+
 # SonarQube
 .scannerwork/

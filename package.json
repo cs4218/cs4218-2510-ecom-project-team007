@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "ecommerce rest api",
   "main": "server.js",
+  "imports": {
+    "#helpers/*": "./helpers/*",
+    "#models/*": "./models/*"
+  },
   "scripts": {
     "start": "node server.js",
+    "start:volume-test": "MONGO_URL=mongodb://localhost:27017/ecom-volume-test node server.js",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
@@ -34,6 +39,7 @@
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.2",
     "morgan": "^1.10.0",
